@@ -2,7 +2,7 @@
 
 A playful, pastel SQL course that takes a complete beginner to intermediate level. It's built for people heading into business analyst, product manager, operations and data analyst roles.
 
-**Live site:** https://chaitalipatil06.github.io/sql-lumi/
+**Live site:** https://chaitalipatil06.github.io/SQL-Lumi/
 
 Everything runs in the browser. Learners write real SQL against a small fictional company database (powered by [sql.js](https://github.com/sql-js/sql.js), SQLite compiled to JavaScript). There's no server and no sign-up.
 
