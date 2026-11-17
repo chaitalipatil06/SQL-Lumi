@@ -486,7 +486,7 @@ FROM yearly;</pre>
         <li>Month-over-month change (<code>LAG</code>)</li>
         <li>Explain: WHERE vs HAVING, INNER vs LEFT JOIN, UNION vs UNION ALL, DELETE vs TRUNCATE</li>
       </ul>
-      <p>Bonus to try: employees who earn more than their manager.</p>
+      <p>Bonus to try: employees who earn more than their manager. (Spoiler: nobody at Lumi Labs does! Change it to <code>e.salary &gt;= 0.75 * m.salary</code> to see results.)</p>
       <pre class="sql">SELECT e.name, e.salary, m.name AS manager, m.salary AS manager_salary
 FROM employees e
 JOIN employees m ON m.emp_id = e.manager_id

@@ -1,6 +1,6 @@
 # SQL Quest with Lumi 🫧
 
-A playful, pastel SQL course that takes a complete beginner to intermediate level. It's built for people heading into business analyst, product manager, operations and data analyst roles.
+A playful, pastel SQL course that takes a complete beginner to interview-ready. It's built for business analytics graduates heading into data analyst, business/BI analyst, product analyst and operations roles.
 
 **Live site:** https://chaitalipatil06.github.io/SQL-Lumi/
 
@@ -8,11 +8,15 @@ Everything runs in the browser. Learners write real SQL against a small fictiona
 
 ## Features
 
-- **10 chapters**: databases and keys → SELECT → WHERE → ORDER BY/LIMIT → GROUP BY/HAVING → JOINs → CASE and functions → subqueries and CTEs → window functions → real manager reports and interview prep
+- **16 chapters**: databases and keys → SELECT → WHERE → ORDER BY/LIMIT → GROUP BY/HAVING → JOINs → CASE and functions → subqueries and CTEs → window functions → business reports → INSERT/UPDATE/DELETE and transactions → CREATE TABLE, constraints, views and normalization → UNION/INTERSECT/EXCEPT, NULL traps and duplicates → dates and text → analytics patterns (funnels, cohort retention, gaps-and-islands, medians) → indexes, query plans, warehouse concepts and an interview method
+- **Practice Gym**: 47 auto-graded problems (14 easy, 16 medium, 12 hard, and a 5-part business case study)
+- **Mock interview**: 4 random problems against a 25-minute timer, with a results review
 - **Try-it buttons** on every example, plus a playground with a live schema browser
+- **Before → After view**: every query shows the source table next to the result. Kept rows are highlighted, filtered rows are faded, GROUP BY groups are colour-coded, the columns the query uses are marked, and INSERT/UPDATE/DELETE show added, changed and removed rows
 - **Quizzes and auto-graded challenges** in every chapter, with hints and friendly error messages
 - **Progress tracker**: a quest map, gems, ranks (Data Sprout → SQL Sage), a badge shelf and a progress bar, saved in the browser with a backup/restore code
-- **A reward game every 2 chapters**: Keyword Memory, Clause Shuffle, Join Detective, Brain Teasers and a 60-second Speed Blitz that ends in a certificate
+- **A reward game every 2 chapters** (8 games), with a certificate at the end
+- Practice data: a company database (departments, employees, customers, products, orders) plus product-analytics tables (`users`, `events`)
 - **Lumi**, an original axolotl mascot, animated in hand-written SVG
 - A role guide showing which chapters matter most for each target job
 
@@ -23,7 +27,9 @@ index.html        built, self-contained site (what GitHub Pages serves)
 src/
   shell.html      page skeleton
   style.css       styles and animations
-  content.js      chapters, quizzes, challenges, games (edit this to change the course)
+  content.js      chapters 1-10, quizzes, challenges, games
+  content2.js     chapters 11-16 and the extra games
+  gym.js          the 47 Practice Gym problems
   app.js          app logic: router, playground, grading, games, progress
   gen_seed.py     generates the practice database
   seed.sql        generated practice data
@@ -36,8 +42,7 @@ tests/            Playwright end-to-end checks
 ```bash
 npm install            # fetches sql.js (only needed for the tests)
 npm run build          # rebuilds index.html from src/
-python3 tests/e2e_chapters.py   # solves every chapter and runs every example
-python3 tests/e2e_games.py      # plays all five games
+python3 tests/e2e_full.py   # solves all 16 chapters, all 47 gym problems and a mock interview
 ```
 
 Open `index.html` in a browser to preview it. The SQL engine loads from a CDN, so you need an internet connection.

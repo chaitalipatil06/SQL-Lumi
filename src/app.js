@@ -4,14 +4,15 @@ const $ = (s, el=document) => el.querySelector(s);
 const $$ = (s, el=document) => [...el.querySelectorAll(s)];
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const KEY = 'sqlquest-v1';
-const LEVELS = [[0,"Data Sprout"],[2,"Query Cadet"],[4,"Filter Ranger"],[6,"Join Knight"],[8,"Window Wizard"],[10,"SQL Sage"]];
+const LEVELS = [[0,"Data Sprout"],[2,"Query Cadet"],[4,"Filter Ranger"],[6,"Join Knight"],[9,"Window Wizard"],[12,"Data Architect"],[14,"Analytics Ace"],[16,"SQL Sage"]];
 const PASTELS = ['#ffb8cf','#c6e3ff','#bfeedd','#e1d4ff','#fff1b8','#ffd8c2','#b9a2ff','#7fd8b8','#ff9fc6'];
 
 // ---------- state ----------
-let S = { name:"", gems:0, done:{}, quiz:{}, solved:{}, games:{}, tries:{} };
+let S = { name:"", gems:0, done:{}, quiz:{}, solved:{}, games:{}, tries:{}, gym:{}, mock:null };
 function load(){ try{ const t = localStorage.getItem(KEY); if(t) S = Object.assign(S, JSON.parse(t)); }catch(e){} }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} updateTop(); }
-load();
+load(); S.gym = S.gym || {};
+const NCH = CHAPTERS.length, LASTG = GAMES[GAMES.length-1];
 const doneCount = () => CHAPTERS.filter(c => S.done[c.id]).length;
 const level = () => { let n = doneCount(), l = LEVELS[0][1]; LEVELS.forEach(([k,v]) => { if(n >= k) l = v; }); return l; };
 const chUnlocked = id => id === 1 || !!S.done[id-1];
@@ -98,15 +99,103 @@ function friendly(msg){
   if(m.includes('no such column')) return "That column doesn't exist in this table. Peek at the Schema list, or check your table alias.";
   if(m.includes('syntax error')) return "Small typo somewhere near the word shown. Check commas, quotes and keyword order.";
   if(m.includes('ambiguous')) return "Two tables share that column name. Prefix it with the table alias, like o.amount.";
+  if(m.includes('constraint failed')) return "The table's rules (constraints) rejected this row. That's them doing their job! Read which rule failed.";
+  if(m.includes('already exists')) return "You already created this in the playground. Use 'IF NOT EXISTS', or click ↺ Reset data.";
+  if(m.includes('duplicate column')) return "That column was already added. Click ↺ Reset data to start fresh.";
   if(m.includes('misuse of aggregate')) return "Aggregates like SUM() belong in SELECT or HAVING, not WHERE.";
   return "Lumi is scratching her head. Read the message and try again!";
 }
-function renderResult(el, sql){
-  if(!db){ el.innerHTML = '<div class="meta">Loading the SQL engine… one moment ✨</div>'; dbReady.then(() => renderResult(el, sql)); return null; }
+// ---------- Before → After visualiser ----------
+const GCOL = ['#ffd6e0','#d6ecff','#d9f7e6','#fff1c9','#efe1ff','#ffe0cc','#d6f5f5','#ffe6f2','#e6f0ff','#f0f7d4'];
+const stripComments = s => s.replace(/--[^\n]*/g, ' ').replace(/\/\*[\s\S]*?\*\//g, ' ');
+function knownTables(){ try{ const r = db.exec("SELECT name, type FROM sqlite_master WHERE type IN ('table','view') AND name NOT LIKE 'sqlite_%'"); return r.length ? r[0].values.map(v => ({name:v[0], view:v[1] === 'view'})) : []; }catch(e){ return []; } }
+function snapshot(t){ try{ return runOn(db, t.view ? `SELECT * FROM "${t.name}"` : `SELECT rowid AS __rid, * FROM "${t.name}"`); }catch(e){ return null; } }
+function splitTop(s, sep){ const out = []; let d = 0, cur = '', q = false; for(const ch of s){ if(ch === "'") q = !q; if(!q){ if(ch === '(') d++; if(ch === ')') d--; } if(ch === sep && d === 0 && !q){ out.push(cur); cur = ''; } else cur += ch; } out.push(cur); return out.map(x => x.trim()).filter(Boolean); }
+// find the index of a top-level keyword (not inside parentheses or quotes)
+function topIdx(s, re){ let d = 0, q = false; for(let i = 0; i < s.length; i++){ const ch = s[i]; if(ch === "'") q = !q; if(q) continue; if(ch === '(') d++; else if(ch === ')') d--; else if(d === 0){ re.lastIndex = 0; const m = re.exec(s.slice(i)); if(m && m.index === 0 && (i === 0 || /[\s(]/.test(s[i-1]))) return i; } } return -1; }
+function cellHTML(x){ return x === null ? '<td class="null">NULL</td>' : `<td>${esc(typeof x === 'number' && !Number.isInteger(x) ? +x.toFixed(4) : x)}</td>`; }
+function beforeTable(snap, opts = {}){
+  const ri = snap.columns.indexOf('__rid'); const cols = snap.columns.filter(c => c !== '__rid');
+  const rows = snap.values.slice(0, 120).map(v => { const rid = ri >= 0 ? v[ri] : null; const vals = v.filter((_, i) => i !== ri);
+    let cls = '', style = ''; if(opts.groups){ if(opts.groups.has(rid)) style = `background:${opts.gcolor(opts.groups.get(rid))}`; else cls = 'dropped'; } else if(opts.kept){ cls = opts.kept.has(rid) ? 'kept' : 'dropped'; }
+    if(opts.deleted && opts.deleted.has(rid)) cls = 'deleted'; if(opts.added && opts.added.has(rid)) cls = 'added';
+    return `<tr class="${cls}" style="${style}">${vals.map((x, j) => { const ch = opts.changed && opts.changed.has(rid + ':' + cols[j]); const h = ch ? cellHTML(x).replace('<td', '<td class="chg"') : cellHTML(x); return style ? h.replace('<td', `<td style="${style}"`) : h; }).join('')}</tr>`; }).join('');
+  const used = opts.usedCols || new Set();
+  return `<div class="tblwrap"><table class="res"><tr>${cols.map(c => `<th class="${used.has(c.toLowerCase()) ? 'usedcol' : ''}">${esc(c)}</th>`).join('')}</tr>${rows}</table></div>${snap.values.length > 120 ? `<div class="meta">Showing 120 of ${snap.values.length} rows</div>` : ''}`;
+}
+function afterTable(r, rowColor){
+  const rows = r.values.slice(0, 200).map(v => { const st = rowColor ? rowColor(v) : ''; return `<tr>${v.map(x => st ? cellHTML(x).replace('<td', `<td style="${st}"`) : cellHTML(x)).join('')}</tr>`; }).join('');
+  return `<div class="tblwrap"><table class="res"><tr>${r.columns.map(c => `<th>${esc(c)}</th>`).join('')}</tr>${rows}</table></div>`;
+}
+function compareView(sql, r, ms){
+  const clean = stripComments(sql).trim().replace(/;\s*$/, ''); const first = splitTop(clean, ';')[0] || '';
+  const T = knownTables(); const names = new Set(T.map(t => t.name.toLowerCase()));
+  const refs = [...new Set([...first.matchAll(/\b(?:FROM|JOIN)\s+"?([A-Za-z_][\w]*)"?/gi)].map(m => m[1].toLowerCase()).filter(n => names.has(n)))];
+  if(!refs.length || !/^\s*(WITH|SELECT)\b/i.test(first) || /\bsqlite_master\b|EXPLAIN/i.test(first)) return null;
+  const tables = refs.map(n => T.find(t => t.name.toLowerCase() === n));
+  const notes = []; let opts = {}, rowColor = null;
+  const single = tables.length === 1 && !/\bJOIN\b|\bUNION\b|\bINTERSECT\b|\bEXCEPT\b|^\s*WITH\b/i.test(first) && !tables[0].view;
+  const fromI = topIdx(first, /FROM\s/i), groupI = topIdx(first, /GROUP\s+BY\s/i);
+  const selectList = fromI > 0 ? first.slice(first.search(/SELECT\s/i) + 6, fromI).replace(/^\s*DISTINCT\s+/i, '') : '';
+  const hasAgg = /\b(COUNT|SUM|AVG|MIN|MAX|GROUP_CONCAT|TOTAL)\s*\(/i.test(selectList) && !/\bOVER\s*\(/i.test(selectList);
+  const snap0 = snapshot(tables[0]);
+  if(snap0){ const total = snap0.values.length; const words = new Set((first.toLowerCase().match(/[a-z_]+/g) || [])); opts.usedCols = new Set(snap0.columns.filter(c => c !== '__rid' && words.has(c.toLowerCase())).map(c => c.toLowerCase()));
+    if(single && fromI > 0){
+      const tail = first.slice(fromI);
+      if(groupI < 0 && !hasAgg){
+        // which source rows survive WHERE / LIMIT?
+        let kept = null; try{ const q = runOn(db, 'SELECT rowid AS __rid, ' + selectList + ' ' + tail); kept = new Set(q ? q.values.map(v => v[0]) : []); }catch(e0){ try{ const q = runOn(db, 'SELECT rowid AS __rid ' + tail); kept = new Set(q ? q.values.map(v => v[0]) : []); }catch(e){
+          try{ const cut = topIdx(tail, /ORDER\s+BY\s|LIMIT\s/i); const q = runOn(db, 'SELECT rowid AS __rid ' + (cut > 0 ? tail.slice(0, cut) : tail)); kept = new Set(q ? q.values.map(v => v[0]) : []); }catch(e2){} } }
+        if(kept){ opts.kept = kept; if(/\bWHERE\b/i.test(tail)) notes.push(`<b>WHERE</b> kept <b>${kept.size}</b> of ${total} rows`); else if(/\bLIMIT\b/i.test(tail)) notes.push(`<b>LIMIT</b> kept <b>${kept.size}</b> of ${total} rows`); else notes.push(`all <b>${total}</b> rows kept`); }
+        if(/^\s*SELECT\s+DISTINCT/i.test(first)) notes.push(`<b>DISTINCT</b> removed duplicates → <b>${r.values.length}</b> rows`);
+        if(/\bORDER\s+BY\b/i.test(tail)) notes.push(`<b>ORDER BY</b> re-sorted them`);
+      } else if(groupI > 0){
+        const gtxt = first.slice(groupI).replace(/^GROUP\s+BY\s+/i, ''); const end = topIdx(gtxt, /HAVING\s|ORDER\s+BY\s|LIMIT\s/i); const keys = splitTop(end > 0 ? gtxt.slice(0, end) : gtxt, ',');
+        const fromPart = first.slice(fromI, groupI);
+        try{ const q = runOn(db, `SELECT rowid AS __rid, ${keys.map(k => `COALESCE(CAST((${k}) AS TEXT), 'NULL')`).join(" || ' · ' || ")} AS __g ${fromPart}`);
+          const groups = new Map(q ? q.values.map(v => [v[0], v[1]]) : []); const keyList = [...new Set(groups.values())]; const gcolor = k => GCOL[keyList.indexOf(k) % GCOL.length];
+          opts.groups = groups; opts.gcolor = gcolor; opts.kept = new Set(groups.keys());
+          notes.push(`<b>GROUP BY</b> sorted ${groups.size} rows into <b>${keyList.length}</b> coloured groups → 1 result row each`);
+          if(/\bWHERE\b/i.test(fromPart) && groups.size < total) notes.push(`<b>WHERE</b> first kept ${groups.size} of ${total} rows`);
+          if(/\bHAVING\b/i.test(gtxt) && r.values.length < keyList.length) notes.push(`<b>HAVING</b> then dropped ${keyList.length - r.values.length} group(s)`);
+          if(keys.length === 1) rowColor = v => { const hit = v.find(x => keyList.includes(x === null ? 'NULL' : String(x))); return hit !== undefined ? `background:${gcolor(hit === null ? 'NULL' : String(hit))}` : ''; };
+        }catch(e){}
+      } else if(hasAgg){ notes.push(`an <b>aggregate</b> squashed ${total} rows into <b>${r.values.length}</b>`); }
+    } else if(tables.length > 1){ notes.push(`<b>JOIN</b> matched rows from <b>${tables.map(t => t.name).join(' + ')}</b> using the ON condition`); }
+    else if(/^\s*WITH\b/i.test(first)) notes.push('<b>CTE</b>: built step by step from the source table');
+    if(single && groupI < 0 && !hasAgg && r.columns.length < snap0.columns.length - 1) notes.push(`<b>SELECT</b> picked <b>${r.columns.length}</b> of ${snap0.columns.length - 1} columns`);
+  }
+  const tabs = tables.map((t, i) => `<button class="btab ${i ? '' : 'on'}" data-i="${i}">${esc(t.name)}</button>`).join('');
+  const panes = tables.map((t, i) => { const s = i === 0 ? snap0 : snapshot(t); return `<div class="bpane" data-i="${i}" ${i ? 'hidden' : ''}>${s ? beforeTable(s, i === 0 ? opts : {}) : ''}</div>`; }).join('');
+  return `<div class="result cmp"><div class="cmp-notes">${notes.length ? '🔎 ' + notes.join(' · ') : '🔎 Compare the source table with your result.'}</div>
+    <div class="cmp-grid"><div class="cmp-side"><div class="cmp-h">BEFORE · source table${tables.length > 1 ? 's' : ''} ${tables.length > 1 ? tabs : `<span class="tname">${esc(tables[0].name)} (${snap0 ? snap0.values.length : '?'} rows)</span>`}</div>${panes}
+      ${opts.kept && !opts.groups ? '<div class="legend"><span class="lk"></span> kept <span class="ld"></span> filtered out <span class="lu"></span> column your query uses</div>' : opts.groups ? '<div class="legend">Same colour = same group · faded = filtered out · <span class="lu"></span> column your query uses</div>' : ''}</div>
+    <div class="cmp-arrow">⬇ your query ⬇</div><div class="cmp-side"><div class="cmp-h">AFTER · your result <span class="tname">${r.values.length} row${r.values.length === 1 ? '' : 's'} · ${ms} ms</span></div>${afterTable(r, rowColor)}</div></div></div>`;
+}
+function dmlView(sql, el){
+  const clean = stripComments(sql).trim(); const m = /^\s*(INSERT\s+(?:OR\s+\w+\s+)?INTO|UPDATE|DELETE\s+FROM)\s+"?([A-Za-z_]\w*)"?/i.exec(clean); if(!m) return false;
+  const t = knownTables().find(x => x.name.toLowerCase() === m[2].toLowerCase() && !x.view); if(!t) return false;
+  const before = snapshot(t); const t0 = performance.now(); const res = db.exec(sql); const ms = (performance.now() - t0).toFixed(1); const after = snapshot(t);
+  const bm = new Map(before.values.map(v => [v[0], v])), am = new Map(after.values.map(v => [v[0], v])); const cols = before.columns;
+  const deleted = new Set([...bm.keys()].filter(k => !am.has(k))), added = new Set([...am.keys()].filter(k => !bm.has(k))), changed = new Set(); let nChanged = 0;
+  for(const [k, v] of am){ const b = bm.get(k); if(!b) continue; let any = false; cols.forEach((c, i) => { if(i && b[i] !== v[i]){ changed.add(k + ':' + c); any = true; } }); if(any) nChanged++; }
+  const verb = m[1].split(/\s+/)[0].toUpperCase(); const notes = [];
+  if(added.size) notes.push(`<b>${verb}</b> added <b>${added.size}</b> row${added.size > 1 ? 's' : ''} (green)`); if(nChanged) notes.push(`<b>${verb}</b> changed <b>${nChanged}</b> row${nChanged > 1 ? 's' : ''} (yellow cells)`); if(deleted.size) notes.push(`<b>${verb}</b> removed <b>${deleted.size}</b> row${deleted.size > 1 ? 's' : ''} (red)`);
+  if(!notes.length) notes.push('No rows changed. Check your WHERE condition (or a ROLLBACK undid it).');
+  const last = res.length ? res[res.length - 1] : null;
+  el.innerHTML = `<div class="result cmp"><div class="cmp-notes">✏️ ${notes.join(' · ')} · ${ms} ms</div><div class="cmp-grid"><div class="cmp-side"><div class="cmp-h">BEFORE <span class="tname">${esc(t.name)} (${before.values.length} rows)</span></div>${beforeTable(before, {deleted, changed})}</div><div class="cmp-arrow">⬇ your query ⬇</div><div class="cmp-side"><div class="cmp-h">AFTER <span class="tname">${esc(t.name)} (${after.values.length} rows)</span></div>${beforeTable(after, {added, changed})}</div></div>
+    ${last ? `<div class="cmp-h" style="margin-top:10px">Query result <span class="tname">${last.values.length} rows</span></div>${afterTable(last)}` : ''}<div class="meta">Changes stay in the playground. Click ↺ Reset data to restore the original tables.</div></div>`;
+  return true;
+}
+function renderResult(el, sql, plain){
+  if(!db){ el.innerHTML = '<div class="meta">Loading the SQL engine… one moment ✨</div>'; dbReady.then(() => renderResult(el, sql, plain)); return null; }
   try{
+    if(!plain && dmlView(sql, el)) return {columns:[], values:[]};
     const t0 = performance.now(); const r = runOn(db, sql); const ms = (performance.now()-t0).toFixed(1);
     if(!r){ el.innerHTML = `<div class="result"><div class="meta">✅ Ran fine, but no rows came back (${ms} ms).</div></div>`; return {columns:[],values:[]}; }
-    el.innerHTML = `<div class="result"><div class="meta">✨ ${r.values.length} row${r.values.length===1?'':'s'} · ${ms} ms</div>${table(r)}</div>`;
+    let cmp = null; if(!plain && S.compare !== false){ try{ cmp = compareView(sql, r, ms); }catch(e){ cmp = null; } }
+    el.innerHTML = cmp || `<div class="result"><div class="meta">✨ ${r.values.length} row${r.values.length===1?'':'s'} · ${ms} ms</div>${table(r)}</div>`;
+    $$('.btab', el).forEach(b => b.onclick = () => { $$('.btab', el).forEach(x => x.classList.toggle('on', x === b)); $$('.bpane', el).forEach(p => p.hidden = p.dataset.i !== b.dataset.i); });
     return r;
   }catch(e){ el.innerHTML = `<div class="result err">🙈 ${esc(e.message)}<br><span style="font-weight:600">Lumi's hint: ${friendly(e.message)}</span></div>`; return null; }
 }
@@ -121,13 +210,15 @@ function norm(r, ordered){
   return { cols: r.columns.length, rows };
 }
 function checkAnswer(userSql, ch){
-  const d1 = freshDb(), d2 = freshDb();
+  const C = ch.challenge || ch; const d1 = freshDb(), d2 = freshDb();
   try{
-    const u = norm(runOn(d1, userSql), ch.challenge.ordered), s = norm(runOn(d2, ch.challenge.solution), ch.challenge.ordered);
+    let u, s;
+    if(C.verify){ d1.exec(userSql); d2.exec(C.solution); u = norm(runOn(d1, C.verify), C.ordered); s = norm(runOn(d2, C.verify), C.ordered); }
+    else { u = norm(runOn(d1, userSql), C.ordered); s = norm(runOn(d2, C.solution), C.ordered); }
     if(!u) return { ok:false, msg:"Your query didn't return any rows yet." };
     if(u.cols !== s.cols) return { ok:false, msg:`Expected ${s.cols} column${s.cols>1?'s':''}, you returned ${u.cols}. Check which columns you SELECT.` };
     if(u.rows.length !== s.rows.length) return { ok:false, msg:`Expected ${s.rows.length} rows, you returned ${u.rows.length}. Check your filters or grouping.` };
-    if(u.rows.join() !== s.rows.join()) return { ok:false, msg: ch.challenge.ordered ? "Right size, but some values or the order differ. Check sorting and calculations." : "Right size, but some values differ. Check calculations and column order." };
+    if(u.rows.join() !== s.rows.join()) return { ok:false, msg: C.ordered ? "Right size, but some values or the order differ. Check sorting and calculations." : "Right size, but some values differ. Check calculations and column order." };
     return { ok:true };
   }catch(e){ return { ok:false, msg: esc(e.message) + ' — ' + friendly(e.message) }; }
   finally{ d1.close(); d2.close(); }
@@ -176,13 +267,14 @@ function schemaHTML(){
 function playground(starter){
   return `<div class="card reveal"><h2 style="margin:0 0 4px">🧪 Playground</h2><p style="margin:0 0 10px;color:var(--muted)">Experiment freely. Nothing you do here can break the lesson data permanently.</p>
   <div class="play"><div><textarea class="editor" id="pgEditor" spellcheck="false">${esc(starter)}</textarea>
-  <div class="row"><button class="btn mint small" id="pgRun">▶ Run</button><button class="btn ghost small" id="pgReset">↺ Reset data</button><span class="kbd">Ctrl / ⌘ + Enter to run</span></div><div id="pgOut"></div></div>${schemaHTML()}</div></div>`;
+  <div class="row"><button class="btn mint small" id="pgRun">▶ Run</button><button class="btn ghost small" id="pgReset">↺ Reset data</button><label class="kbd cmptoggle"><input type="checkbox" id="cmpT" ${S.compare === false ? '' : 'checked'}> 🔎 Before → After view</label><span class="kbd">Ctrl / ⌘ + Enter to run</span></div><div id="pgOut"></div></div>${schemaHTML()}</div></div>`;
 }
 function wirePlayground(){
   const ed = $('#pgEditor'); if(!ed) return;
   const run = () => renderResult($('#pgOut'), ed.value);
   $('#pgRun').onclick = run;
   ed.addEventListener('keydown', e => { if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ e.preventDefault(); run(); } });
+  const ct = $('#cmpT'); if(ct) ct.onchange = () => { S.compare = ct.checked; save(); toast(ct.checked ? 'Before → After view on 🔎' : 'Showing results only'); };
   $('#pgReset').onclick = () => { if(db){ db.close(); db = freshDb(); toast('Fresh data restored ✨'); } };
 }
 
@@ -190,7 +282,7 @@ function wirePlayground(){
 function viewHome(){
   const next = CHAPTERS.find(c => !S.done[c.id]);
   const seq = []; CHAPTERS.forEach(c => { seq.push({t:'c', c}); const g = GAMES.find(g => g.after === c.id); if(g) seq.push({t:'g', g}); });
-  const xs = [100,290,480,670,880], ys = [90,320,550];
+  const xs = [100,290,480,670,880], nrows = Math.ceil(seq.length / 5), ys = Array.from({length:nrows}, (_, r) => 90 + r*230), mapH = 90 + (nrows-1)*230 + 90;
   const pts = seq.map((s, i) => { const r = Math.floor(i/5), k = i % 5; return [r % 2 ? xs[4-k] : xs[k], ys[r]]; });
   let d = `M${pts[0][0]} ${pts[0][1]}`; for(let i=1;i<pts.length;i++){ const [x0,y0] = pts[i-1], [x1,y1] = pts[i]; d += y0 === y1 ? ` L${x1} ${y1}` : ` C${x0 + (x0 > 500 ? 110 : -110)} ${y0} ${x1 + (x1 > 500 ? 110 : -110)} ${y1} ${x1} ${y1}`; }
   const nodes = seq.map((s, i) => {
@@ -204,16 +296,16 @@ function viewHome(){
   return `<section class="view">
   <div class="hero"><span class="sparkle" style="top:18px;left:46%">✦</span><span class="sparkle" style="bottom:30px;left:8%;animation-delay:.8s">✧</span><span class="sparkle" style="top:40%;right:6%;animation-delay:1.4s">✦</span>
     <div><div class="kicker" style="font-weight:800;color:#8a6fd1;letter-spacing:1.5px">${hi}</div><h1>SQL Quest<br><span style="font-size:30px;color:#7a5cff">with Lumi the axolotl</span></h1>
-    <p>Learn SQL from absolute zero to interview-ready in 10 bite-size chapters. Run real queries in your browser, earn gems and badges, and unlock a brain game every 2 chapters.</p>
-    <div class="row"><a class="btn" href="#ch-${next ? next.id : 10}" style="text-decoration:none">${doneCount() ? 'Continue quest →' : 'Start chapter 1 →'}</a><a class="btn ghost" href="#cheatsheet" style="text-decoration:none">📜 Cheat sheet</a></div></div>
+    <p>Learn SQL from absolute zero to interview-ready: ${NCH} chapters, ${PROBLEMS.length} practice problems and a timed mock interview. Run real queries in your browser, earn gems and badges, and unlock a brain game every 2 chapters.</p>
+    <div class="row"><a class="btn" href="${next ? '#ch-' + next.id : '#gym'}" style="text-decoration:none">${doneCount() ? 'Continue quest →' : 'Start chapter 1 →'}</a><a class="btn mint" href="#gym" style="text-decoration:none">🏋️ Practice Gym</a><a class="btn ghost" href="#cheatsheet" style="text-decoration:none">📜 Cheat sheet</a></div></div>
     <div class="lumi-wrap">${lumiSVG()}</div></div>
   <div class="statgrid">
-    <div class="stat"><div class="n">${doneCount()}/10</div><div class="l">Chapters done</div></div>
+    <div class="stat"><div class="n">${doneCount()}/${NCH}</div><div class="l">Chapters done</div></div>
     <div class="stat"><div class="n">💎 ${S.gems}</div><div class="l">Gems earned</div></div>
-    <div class="stat"><div class="n">${GAMES.filter(g => S.games[g.id]).length}/5</div><div class="l">Games won</div></div>
+    <div class="stat"><div class="n">${Object.keys(S.gym).length}/${PROBLEMS.length}</div><div class="l">Gym problems solved</div></div>
     <div class="stat"><div class="n" style="font-size:24px">${level()}</div><div class="l">Your rank</div></div></div>
   <div class="card reveal"><h2 style="margin:0">🗺️ Your quest map</h2><p style="color:var(--muted);margin:4px 0 0">Finish chapters in order. Every 2 chapters, a treasure chest opens with a reward game.</p>
-    <div class="map"><svg class="path" viewBox="0 0 1000 640" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="#e3d8fb" stroke-width="16" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#fff" stroke-width="4" stroke-dasharray="2 14" stroke-linecap="round"/></svg>${nodes}</div></div>
+    <div class="map" style="height:${mapH}px"><svg class="path" viewBox="0 0 1000 ${mapH}" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="#e3d8fb" stroke-width="16" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#fff" stroke-width="4" stroke-dasharray="2 14" stroke-linecap="round"/></svg>${nodes}</div></div>
   <div class="card reveal"><h2 style="margin:0 0 4px">🎯 Built for the roles you're targeting</h2><p style="color:var(--muted);margin:0 0 14px">Each role leans on different chapters. Outlined chips are chapters you've finished.</p>
     <div class="roles">${ROLES.map(r => `<div class="role" style="background:${r.color}"><h3>${r.name}</h3><p>${r.why}</p><div class="chips">${r.chapters.map(n => `<span class="${S.done[n]?'ok':''}">Ch ${n}</span>`).join('')}</div></div>`).join('')}</div></div>
   <div class="card reveal"><h2 style="margin:0 0 8px">🏅 Badge shelf</h2><div style="display:flex;flex-wrap:wrap;gap:10px">${CHAPTERS.map(c => `<div title="${esc(c.title)}" style="width:76px;opacity:${S.done[c.id]?1:.18};filter:${S.done[c.id]?'none':'grayscale(1)'}">${badge(c).replace('class="badge"','style="width:76px;height:76px"')}</div>`).join('')}</div></div>
@@ -226,7 +318,7 @@ function viewChapter(id){
   const steps = `<div class="steps"><span class="ok">📖 Lesson</span><span class="${qOk?'ok':''}">${qOk?'✅':'❓'} Quiz</span><span class="${sOk?'ok':''}">${sOk?'✅':'🧩'} Challenge</span><span class="${S.done[id]?'ok':''}">${S.done[id]?'⭐ Complete':'⭐ Badge'}</span></div>`;
   const lockNote = locked ? `<div class="card" style="text-align:center;background:#fff8e6"><b>🔒 Lumi suggests finishing Chapter ${id-1} first.</b> You can still peek, but the chapters build on each other.</div>` : '';
   return `<section class="view">
-  <div class="ch-head" style="background:linear-gradient(135deg,${c.color},#ffffff)">${art(c.art, c.color)}<div><div class="kicker">Chapter ${c.id} of 10</div><h1>${esc(c.title)}</h1><div class="sub">${esc(c.sub)}</div>${steps}</div></div>
+  <div class="ch-head" style="background:linear-gradient(135deg,${c.color},#ffffff)">${art(c.art, c.color)}<div><div class="kicker">Chapter ${c.id} of ${NCH}</div><h1>${esc(c.title)}</h1><div class="sub">${esc(c.sub)}</div>${steps}</div></div>
   ${lockNote}
   <div class="card reveal speech">${lumiSVG('sm')}<div class="bubble">${c.lumi}</div></div>
   <div class="card reveal roletip">💼 <b>Why this matters for your job hunt:</b> ${c.roleTip}</div>
@@ -239,7 +331,7 @@ function viewChapter(id){
     <div class="row"><button class="btn mint small" id="chRun">▶ Run</button><button class="btn small" id="chCheck">✓ Check answer</button><button class="btn ghost small" id="chHint">💡 Hint</button><button class="btn ghost small" id="chSol" style="display:${(S.tries[id]||0) >= 2 ? 'inline-block':'none'}">👀 Show solution</button></div>
     <div id="chMsg" style="margin-top:10px;font-weight:800"></div><div id="chOut"></div></div>
   <div class="card complete-bar reveal" id="completeBar"></div>
-  <div class="row" style="justify-content:space-between">${id>1?`<a class="btn ghost small" href="#ch-${id-1}" style="text-decoration:none">← Chapter ${id-1}</a>`:'<span></span>'}${id<10?`<a class="btn ghost small" href="#ch-${id+1}" style="text-decoration:none">Chapter ${id+1} →</a>`:''}</div>
+  <div class="row" style="justify-content:space-between">${id>1?`<a class="btn ghost small" href="#ch-${id-1}" style="text-decoration:none">← Chapter ${id-1}</a>`:'<span></span>'}${id<NCH?`<a class="btn ghost small" href="#ch-${id+1}" style="text-decoration:none">Chapter ${id+1} →</a>`:''}</div>
   </section>`;
 }
 function wireChapter(id){
@@ -263,7 +355,9 @@ function wireChapter(id){
   $('#chHint').onclick = () => { $('#chMsg').innerHTML = `💡 <span style="font-weight:700">${esc(c.challenge.hint)}</span>`; };
   $('#chSol').onclick = () => { ed.value = c.challenge.solution.replace(/ (FROM|WHERE|JOIN|GROUP BY|ORDER BY|HAVING)/g, '\n$1'); $('#chMsg').innerHTML = '👀 Here is one solution. Run it and see why it works!'; };
   $('#chCheck').onclick = async () => {
-    await dbReady; renderResult($('#chOut'), ed.value);
+    await dbReady; const CV = (CHAPTERS.find(x => x.id === id) || {challenge:{}}).challenge;
+    if(CV.verify){ const d = freshDb(); try{ d.exec(ed.value); const vr = runOn(d, CV.verify); $('#chOut').innerHTML = `<div class="result"><div class="meta">🔍 After running your SQL on fresh data, we checked: <code>${esc(CV.verify)}</code></div>${vr ? table(vr) : ''}</div>`; }catch(e){ $('#chOut').innerHTML = `<div class="result err">🙈 ${esc(e.message)}<br><span style="font-weight:600">Lumi's hint: ${friendly(e.message)}</span></div>`; } finally{ d.close(); } }
+    else renderResult($('#chOut'), ed.value);
     const r = checkAnswer(ed.value, c);
     if(r.ok){ $('#chMsg').innerHTML = '<span style="color:#2a9d74">🎉 Correct! Lumi is doing a happy wiggle.</span>'; if(!S.solved[id]){ S.solved[id] = true; addGems(50); confetti(40); } save(); refreshComplete(c); }
     else { S.tries[id] = (S.tries[id]||0) + 1; save(); $('#chMsg').innerHTML = `<span style="color:#c0566e">🤔 ${r.msg}</span>`; if(S.tries[id] >= 2) $('#chSol').style.display = 'inline-block'; }
@@ -273,7 +367,7 @@ function wireChapter(id){
 function refreshComplete(c){
   const bar = $('#completeBar'); if(!bar) return;
   const qd = S.quiz[c.id] || {}; const qOk = c.quiz.every((_, i) => qd[i] === 'ok'); const sOk = !!S.solved[c.id];
-  if(S.done[c.id]){ bar.innerHTML = `<div style="width:90px;margin:auto">${badge(c)}</div><h2 style="margin:6px 0">Chapter complete!</h2><a class="btn" href="#${c.id<10?'ch-'+(c.id+1):'game-5'}" style="text-decoration:none">${c.id<10?'Next chapter →':'Play the final game →'}</a>`; return; }
+  if(S.done[c.id]){ bar.innerHTML = `<div style="width:90px;margin:auto">${badge(c)}</div><h2 style="margin:6px 0">Chapter complete!</h2><a class="btn" href="#${c.id<NCH?'ch-'+(c.id+1):'game-'+LASTG.id}" style="text-decoration:none">${c.id<NCH?'Next chapter →':'Play the final game →'}</a>`; return; }
   bar.innerHTML = `<h2 style="margin:0 0 6px">${qOk && sOk ? 'Ready to claim your badge!' : 'Finish the quiz and challenge to earn your badge'}</h2><p style="color:var(--muted)">${qOk?'✅':'⬜'} Quiz &nbsp; ${sOk?'✅':'⬜'} Challenge</p><button class="btn" id="claim" ${qOk && sOk ? '' : 'disabled'}>⭐ Complete chapter (+100 💎)</button>`;
   const b = $('#claim'); if(b) b.onclick = () => completeChapter(c);
 }
@@ -295,8 +389,8 @@ function viewGame(id){
 }
 function winGame(g, scoreText){
   const first = !S.games[g.id]; S.games[g.id] = { done:true, score:scoreText }; if(first) addGems(150); save(); confetti(120);
-  if(g.id === 5) return showCert(scoreText);
-  modal(`<div style="font-size:70px;animation:pop .6s">🏆</div><h2>You won ${esc(g.title)}!</h2><p>${esc(scoreText)}${first?'<br><b>+150 💎</b>':''}</p><a class="btn" href="#ch-${Math.min(g.after+1,10)}" data-close style="text-decoration:none">Back to learning →</a><div style="margin-top:10px"><button class="btn ghost small" data-close id="again">Play again</button></div>`,
+  if(g.id === LASTG.id) return showCert(scoreText);
+  modal(`<div style="font-size:70px;animation:pop .6s">🏆</div><h2>You won ${esc(g.title)}!</h2><p>${esc(scoreText)}${first?'<br><b>+150 💎</b>':''}</p><a class="btn" href="#ch-${Math.min(g.after+1,NCH)}" data-close style="text-decoration:none">Back to learning →</a><div style="margin-top:10px"><button class="btn ghost small" data-close id="again">Play again</button></div>`,
     bg => { $('#again', bg).onclick = () => route(); });
 }
 function shuffle(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; } return a; }
@@ -371,7 +465,7 @@ function gameBlitz(g, el){
 }
 function showCert(scoreText){
   const name = S.name || 'SQL Adventurer'; const date = new Date().toLocaleDateString(undefined, {year:'numeric', month:'long', day:'numeric'});
-  $('main').innerHTML = `<section class="view"><div class="cert card">${lumiSVG('sm')}<div class="kicker" style="font-weight:800;color:#8a6fd1;letter-spacing:2px">CERTIFICATE OF COMPLETION</div><h1>${esc(name)}</h1><p style="font-size:18px">completed all 10 chapters of <b>SQL Quest</b>, from SELECT to window functions, and earned the rank of <b>SQL Sage</b>.</p><p>💎 ${S.gems} gems · 🏅 10 badges · ${esc(scoreText)}</p><p style="color:var(--muted)">${date}</p><div style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap">${CHAPTERS.map(c => `<div style="width:56px">${badge(c).replace('class="badge"','style="width:56px;height:56px"')}</div>`).join('')}</div></div>
+  $('main').innerHTML = `<section class="view"><div class="cert card">${lumiSVG('sm')}<div class="kicker" style="font-weight:800;color:#8a6fd1;letter-spacing:2px">CERTIFICATE OF COMPLETION</div><h1>${esc(name)}</h1><p style="font-size:18px">completed all ${NCH} chapters of <b>SQL Quest</b>, from SELECT to window functions, analytics patterns and performance, and earned the rank of <b>SQL Sage</b>.</p><p>💎 ${S.gems} gems · 🏅 ${NCH} badges · 🏋️ ${Object.keys(S.gym).length} gym problems · ${esc(scoreText)}</p><p style="color:var(--muted)">${date}</p><div style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap">${CHAPTERS.map(c => `<div style="width:56px">${badge(c).replace('class="badge"','style="width:56px;height:56px"')}</div>`).join('')}</div></div>
   <div class="card"><h2 style="margin:0">What next?</h2><ul><li>Practice daily on <a href="https://datalemur.com" target="_blank" rel="noopener">DataLemur</a> or <a href="https://leetcode.com/problemset/database/" target="_blank" rel="noopener">LeetCode SQL</a>.</li><li>Install PostgreSQL and load a public dataset you care about.</li><li>Revisit Chapter 10 and explain each report out loud, as you would in an interview.</li></ul><a class="btn" href="#home" style="text-decoration:none">Back to the map</a></div></section>`;
   confetti(160);
 }
@@ -387,6 +481,10 @@ function viewCheat(){
     ["Joins", "FROM a JOIN b ON b.id = a.b_id        -- matches only\nFROM a LEFT JOIN b ON b.id = a.b_id   -- all of a\n-- anti-join: LEFT JOIN ... WHERE b.id IS NULL"],
     ["CASE & NULLs", "CASE WHEN x > 10 THEN 'big' ELSE 'small' END\nCOALESCE(col, 'n/a')\nx / NULLIF(y, 0)"],
     ["CTE", "WITH step1 AS (SELECT ...),\n     step2 AS (SELECT ... FROM step1)\nSELECT * FROM step2;"],
+    ["Change data", "INSERT INTO t (a, b) VALUES (1, 'x');\nUPDATE t SET b = 'y' WHERE a = 1;   -- preview with SELECT first!\nDELETE FROM t WHERE a = 1;\nBEGIN; ... ROLLBACK;  -- or COMMIT"],
+    ["Build tables & views", "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE, score INTEGER CHECK (score >= 0));\nCREATE VIEW v AS SELECT ...;\nCREATE INDEX idx_t_name ON t(name);"],
+    ["Combine results", "SELECT ... UNION ALL SELECT ...   -- stack (UNION removes dups)\nSELECT ... INTERSECT SELECT ...   -- in both\nSELECT ... EXCEPT SELECT ...      -- in first, not second"],
+    ["Dates (SQLite)", "strftime('%Y-%m', d)   date(d, '+7 days')   date(d, 'start of month')\njulianday(b) - julianday(a)   -- days between"],
     ["Window functions", "ROW_NUMBER() OVER (PARTITION BY grp ORDER BY val DESC)\nRANK() / DENSE_RANK() OVER (ORDER BY val DESC)\nSUM(val) OVER (ORDER BY dt)            -- running total\nLAG(val) OVER (ORDER BY dt)            -- previous row"]
   ];
   return `<section class="view"><div class="ch-head" style="background:linear-gradient(135deg,#e1d4ff,#fff)">${art('nest','#e1d4ff')}<div><div class="kicker">Reference</div><h1>Cheat sheet</h1><div class="sub">Everything from the course on one page. Try any of it in the playground at the bottom.</div></div></div>
@@ -395,16 +493,92 @@ function viewCheat(){
   ${playground('SELECT * FROM orders LIMIT 10;')}</section>`;
 }
 
+// ---------- Practice Gym ----------
+const DIFFS = ['Easy','Medium','Hard','Case study'];
+const DCOLOR = {'Easy':'#d9f7e6','Medium':'#fff1c9','Hard':'#ffd6e0','Case study':'#e6e0ff'};
+let gymFilter = 'All';
+function viewGym(){
+  const solved = Object.keys(S.gym).length;
+  return `<section class="view"><div class="ch-head" style="background:linear-gradient(135deg,#d9f7e6,#efe1ff)">${art('trophy','#d9f7e6')}<div><div class="kicker">Practice Gym</div><h1>${PROBLEMS.length} interview-style problems</h1><div class="sub">Easy → Medium → Hard → a 5-part business case study. Each one is graded automatically against Lumi Labs' data.</div>
+    <div class="steps">${DIFFS.map(d => { const ps = PROBLEMS.filter(p => p.diff === d); return `<span class="${ps.every(p => S.gym[p.id]) ? 'ok' : ''}">${d}: ${ps.filter(p => S.gym[p.id]).length}/${ps.length}</span>`; }).join('')}<span>💎 ${DIFF_GEMS.Easy} / ${DIFF_GEMS.Medium} / ${DIFF_GEMS.Hard} gems each</span></div></div></div>
+  <div class="card reveal" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><b>Progress: ${solved}/${PROBLEMS.length}</b><div style="flex:1;min-width:160px;height:12px;background:#f0eaf9;border-radius:9px;overflow:hidden"><i style="display:block;height:100%;width:${solved/PROBLEMS.length*100}%;background:linear-gradient(90deg,var(--mint2),var(--lav2))"></i></div><a class="btn small" href="#mock" style="text-decoration:none">⏱️ Mock interview</a></div>
+  <div class="row" id="gymFilters">${['All', ...DIFFS, 'Unsolved'].map(f => `<button class="btn ${f === gymFilter ? '' : 'ghost'} small" data-f="${f}">${f}</button>`).join('')}</div>
+  ${DIFFS.map(d => { const ps = PROBLEMS.filter(p => p.diff === d && (gymFilter === 'All' || gymFilter === d || (gymFilter === 'Unsolved' && !S.gym[p.id]))); if(!ps.length) return '';
+    return `<div class="card reveal"><h2 style="margin:0 0 10px">${d === 'Easy' ? '🌱' : d === 'Medium' ? '🌿' : d === 'Hard' ? '🌳' : '💼'} ${d}${d === 'Case study' ? ': Lumi Labs quarterly business review' : ''}</h2><div class="plist">${ps.map(p => `<a class="prob ${S.gym[p.id] ? 'solved' : ''}" href="#p-${p.id}"><span class="pid" style="background:${DCOLOR[p.diff]}">${p.id}</span><span class="pt"><b>${esc(p.title)}</b><span class="tags">${p.tags.map(t => `<i>${t}</i>`).join('')}</span></span><span class="pst">${S.gym[p.id] ? '✅' : '→'}</span></a>`).join('')}</div></div>`; }).join('')}
+  </section>`;
+}
+function wireGym(){ $$('#gymFilters button').forEach(b => b.onclick = () => { gymFilter = b.dataset.f; route(); }); }
+function viewProblem(id){
+  const i = PROBLEMS.findIndex(p => p.id === id); if(i < 0) return viewGym(); const p = PROBLEMS[i], prev = PROBLEMS[i-1], next = PROBLEMS[i+1];
+  return `<section class="view"><div class="row" style="justify-content:space-between;margin:0"><a class="btn ghost small" href="#gym" style="text-decoration:none">← Gym</a><span><b>${i+1}</b> / ${PROBLEMS.length}</span></div>
+  <div class="card challenge"><div class="row" style="margin:0"><span class="pid" style="background:${DCOLOR[p.diff]}">${p.id}</span><span class="pill">${p.diff} · 💎 ${DIFF_GEMS[p.diff]}</span>${p.tags.map(t => `<span class="pill" style="font-weight:700">${t}</span>`).join('')}${S.gym[p.id] ? '<span class="pill" style="background:#e3fbef">✅ Solved</span>' : ''}</div>
+    <h2 style="margin:10px 0 6px">${esc(p.title)}</h2><p style="font-size:17px">${p.prompt}</p>
+    <div class="play"><div><textarea class="editor" id="pEditor" spellcheck="false">${esc(S.tries['p'+id] || '-- Write your query here\n')}</textarea>
+    <div class="row"><button class="btn mint small" id="pRun">▶ Run</button><button class="btn small" id="pCheck">✓ Check</button><button class="btn ghost small" id="pHint">💡 Hint</button><button class="btn ghost small" id="pSol" style="display:${(S.tries[id]||0) >= 2 || S.gym[p.id] ? 'inline-block' : 'none'}">👀 Solution</button><span class="kbd">Ctrl/⌘+Enter = check</span></div>
+    <div id="pMsg" style="margin-top:8px;font-weight:800"></div><div id="pOut"></div></div>${schemaHTML()}</div></div>
+  <div class="row" style="justify-content:space-between">${prev ? `<a class="btn ghost small" href="#p-${prev.id}" style="text-decoration:none">← ${prev.id}</a>` : '<span></span>'}${next ? `<a class="btn ghost small" href="#p-${next.id}" style="text-decoration:none">${next.id}: ${esc(next.title)} →</a>` : '<a class="btn small" href="#mock" style="text-decoration:none">⏱️ Try the mock interview →</a>'}</div></section>`;
+}
+function wireProblem(id){
+  const p = PROBLEMS.find(x => x.id === id); if(!p) return; const ed = $('#pEditor');
+  ed.addEventListener('input', () => { S.tries['p'+id] = ed.value; save(); });
+  ed.addEventListener('keydown', e => { if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ e.preventDefault(); $('#pCheck').click(); } });
+  $('#pRun').onclick = () => renderResult($('#pOut'), ed.value);
+  $('#pHint').onclick = () => { $('#pMsg').innerHTML = `💡 <span style="font-weight:700">${esc(p.hint)}</span>`; };
+  $('#pSol').onclick = () => { ed.value = p.solution.replace(/ (FROM|WHERE|JOIN|LEFT JOIN|GROUP BY|ORDER BY|HAVING|SELECT|UNION ALL)\b/g, '\n$1').replace(/\n(JOIN|LEFT JOIN)/g, '\n  $1'); $('#pMsg').innerHTML = '👀 One possible solution. Run it, then try writing it yourself from memory!'; };
+  $('#pCheck').onclick = async () => { await dbReady; renderResult($('#pOut'), ed.value); const r = checkAnswer(ed.value, p);
+    if(r.ok){ $('#pMsg').innerHTML = '<span style="color:#2a9d74">🎉 Correct! Interview-ready move.</span>'; if(!S.gym[id]){ S.gym[id] = Date.now(); addGems(DIFF_GEMS[p.diff]); confetti(50); } save(); $('#pSol').style.display = 'inline-block'; }
+    else { S.tries[id] = (S.tries[id]||0) + 1; save(); $('#pMsg').innerHTML = `<span style="color:#c0566e">🤔 ${r.msg}</span>`; if(S.tries[id] >= 2) $('#pSol').style.display = 'inline-block'; } };
+}
+// ---------- Mock interview ----------
+let MOCK = null;
+function viewMock(){
+  if(!MOCK || MOCK.ended) return `<section class="view"><div class="ch-head" style="background:linear-gradient(135deg,#fff0d6,#ffd6e0)">${art('trophy','#fff0d6')}<div><div class="kicker">Mock interview</div><h1>4 questions · 25 minutes</h1><div class="sub">1 easy, 2 medium and 1 hard, picked at random from the gym. Talk through your thinking out loud as if an interviewer is listening.</div></div></div>
+    ${MOCK && MOCK.ended ? mockResults() : ''}
+    <div class="card"><h2 style="margin:0 0 6px">How it works</h2><ul><li>A timer runs for 25 minutes. Use the <b>5-step method</b> from Chapter 16.</li><li>Check answers as often as you like. Solutions appear only at the end.</li><li>Each solved question earns 💎 30.</li></ul>${S.mock ? `<p>Your best: <b>${S.mock.score}/4</b> on ${esc(S.mock.date)}</p>` : ''}<button class="btn" id="mStart">⏱️ Start mock interview</button></div></section>`;
+  const q = PROBLEMS.find(p => p.id === MOCK.ids[MOCK.cur]);
+  return `<section class="view"><div class="card" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><b>⏱️ <span id="mT">--:--</span></b>${MOCK.ids.map((id, i) => `<button class="btn ${i === MOCK.cur ? '' : 'ghost'} small" data-q="${i}">Q${i+1} ${MOCK.solved[id] ? '✅' : ''}</button>`).join('')}<span style="flex:1"></span><button class="btn ghost small" id="mEnd">Finish interview</button></div>
+    <div class="card challenge"><div class="row" style="margin:0"><span class="pill">${q.diff}</span>${q.tags.map(t => `<span class="pill">${t}</span>`).join('')}</div><h2 style="margin:8px 0">Q${MOCK.cur+1}. ${esc(q.title)}</h2><p style="font-size:17px">${q.prompt}</p>
+    <div class="play"><div><textarea class="editor" id="mEd" spellcheck="false">${esc(MOCK.code[q.id] || '-- Clarify, plan, then write it here\n')}</textarea><div class="row"><button class="btn mint small" id="mRun">▶ Run</button><button class="btn small" id="mCheck">✓ Check</button></div><div id="mMsg" style="font-weight:800"></div><div id="mOut"></div></div>${schemaHTML()}</div></div></section>`;
+}
+function mockResults(){
+  const n = MOCK.ids.filter(id => MOCK.solved[id]).length; const mins = Math.round((Math.min(Date.now(), MOCK.endAt) - MOCK.startAt) / 60000);
+  return `<div class="card" style="text-align:center"><div style="font-size:60px">${n === 4 ? '🏆' : n >= 2 ? '🌟' : '💪'}</div><h2>You solved ${n} of 4 in ${mins} min</h2><p>${n === 4 ? 'Interview-ready! Try another round to keep it sharp.' : n >= 2 ? 'Solid! Review the solutions below, then try again tomorrow.' : 'Every attempt builds the muscle. Review the solutions and practise those topics in the gym.'}</p></div>
+  ${MOCK.ids.map((id, i) => { const p = PROBLEMS.find(x => x.id === id); return `<div class="card"><b>Q${i+1}. ${esc(p.title)} ${MOCK.solved[id] ? '✅' : '❌'}</b><p>${p.prompt}</p>${MOCK.solved[id] ? '' : `<pre class="sqlc" style="padding-right:18px">${hl(p.solution)}</pre>`}<a href="#p-${p.id}">Practise this in the gym →</a></div>`; }).join('')}`;
+}
+let mockIv = null;
+function wireMock(){
+  clearInterval(mockIv);
+  const st = $('#mStart'); if(st){ st.onclick = () => { const pick = d => PROBLEMS.filter(p => p.diff === d).sort(() => Math.random() - .5);
+      MOCK = { ids:[pick('Easy')[0].id, ...pick('Medium').slice(0,2).map(p => p.id), pick('Hard')[0].id], cur:0, solved:{}, code:{}, startAt:Date.now(), endAt:Date.now() + 25*60000, ended:false }; route(); }; return; }
+  const q = PROBLEMS.find(p => p.id === MOCK.ids[MOCK.cur]); const ed = $('#mEd');
+  const finish = () => { if(MOCK.ended) return; MOCK.ended = true; clearInterval(mockIv); const n = MOCK.ids.filter(id => MOCK.solved[id]).length;
+    if(!S.mock || n > S.mock.score) S.mock = { score:n, date:new Date().toLocaleDateString() }; save(); if(n) confetti(40 + n*20); route(); };
+  const tick = () => { const left = Math.max(0, MOCK.endAt - Date.now()); const t = $('#mT'); if(!t){ clearInterval(mockIv); return; } t.textContent = `${Math.floor(left/60000)}:${String(Math.floor(left/1000)%60).padStart(2,'0')}`; t.style.color = left < 120000 ? '#c0566e' : ''; if(left <= 0) finish(); };
+  mockIv = setInterval(tick, 1000); tick();
+  ed.addEventListener('input', () => { MOCK.code[q.id] = ed.value; });
+  ed.addEventListener('keydown', e => { if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ e.preventDefault(); $('#mCheck').click(); } });
+  $$('[data-q]').forEach(b => b.onclick = () => { MOCK.code[q.id] = ed.value; MOCK.cur = +b.dataset.q; route(); });
+  $('#mRun').onclick = () => renderResult($('#mOut'), ed.value, true);
+  $('#mCheck').onclick = async () => { await dbReady; renderResult($('#mOut'), ed.value, true); const r = checkAnswer(ed.value, q);
+    if(r.ok){ if(!MOCK.solved[q.id]){ MOCK.solved[q.id] = true; addGems(30); } $('#mMsg').innerHTML = '<span style="color:#2a9d74">✅ Correct! On to the next one.</span>'; $$('[data-q]')[MOCK.cur].textContent = `Q${MOCK.cur+1} ✅`; if(MOCK.ids.every(id => MOCK.solved[id])) setTimeout(finish, 800); }
+    else $('#mMsg').innerHTML = `<span style="color:#c0566e">🤔 ${r.msg}</span>`; };
+  $('#mEnd').onclick = finish;
+}
+
 // ---------- router ----------
 function route(){
+  clearInterval(mockIv);
   const h = (location.hash || '#home').slice(1); const main = $('main'); let html, after = null;
   let m;
   if((m = h.match(/^ch-(\d+)$/))){ const id = +m[1]; html = viewChapter(id); after = () => wireChapter(id); }
   else if((m = h.match(/^game-(\d+)$/))){ const id = +m[1]; html = viewGame(id); after = () => wireGame(id); }
   else if(h === 'cheatsheet'){ html = viewCheat(); after = () => wirePlayground(); }
+  else if(h === 'gym'){ html = viewGym(); after = wireGym; }
+  else if((m = h.match(/^p-(\w+)$/))){ const id = m[1]; html = viewProblem(id); after = () => wireProblem(id); }
+  else if(h === 'mock'){ html = viewMock(); after = wireMock; }
   else html = viewHome();
   main.innerHTML = html; window.scrollTo({top:0});
-  $$('.nav a').forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + h || (h.startsWith('ch-') && a.dataset.k === 'learn')));
+  $$('.nav a').forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + h || (h.startsWith('ch-') && a.dataset.k === 'learn') || (h.startsWith('p-') && a.getAttribute('href') === '#gym')));
   if(after) after(); reveal(main); updateTop();
 }
 window.addEventListener('hashchange', route);
@@ -417,9 +591,9 @@ function settings(){
     <p style="margin-top:16px">Restore from a code:</p><textarea id="rs" placeholder="Paste a backup code here"></textarea>
     <div class="row" style="justify-content:center"><button class="btn mint small" id="rsgo">Restore</button><button class="btn ghost small" id="rename">Change name</button><button class="btn ghost small" id="wipe">Reset everything</button></div><div id="sm" style="font-weight:800;margin-top:8px"></div>`, bg => {
     $('#cp', bg).onclick = async () => { try{ await navigator.clipboard.writeText($('#bk', bg).value); $('#sm', bg).textContent = 'Copied!'; }catch(e){ $('#bk', bg).select(); $('#sm', bg).textContent = 'Select the text above and copy it.'; } };
-    $('#rsgo', bg).onclick = () => { try{ S = Object.assign({name:"",gems:0,done:{},quiz:{},solved:{},games:{},tries:{}}, JSON.parse(decodeURIComponent(escape(atob($('#rs', bg).value.trim()))))); save(); bg.remove(); route(); toast('Progress restored!'); }catch(e){ $('#sm', bg).textContent = "That code didn't work."; } };
+    $('#rsgo', bg).onclick = () => { try{ S = Object.assign({name:"",gems:0,done:{},quiz:{},solved:{},games:{},tries:{},gym:{},mock:null}, JSON.parse(decodeURIComponent(escape(atob($('#rs', bg).value.trim()))))); save(); bg.remove(); route(); toast('Progress restored!'); }catch(e){ $('#sm', bg).textContent = "That code didn't work."; } };
     $('#rename', bg).onclick = () => { bg.remove(); welcome(); };
-    let armed = false; $('#wipe', bg).onclick = e => { if(!armed){ armed = true; e.target.textContent = 'Tap again to confirm'; return; } S = {name:S.name,gems:0,done:{},quiz:{},solved:{},games:{},tries:{}}; save(); bg.remove(); route(); toast('Fresh start!'); };
+    let armed = false; $('#wipe', bg).onclick = e => { if(!armed){ armed = true; e.target.textContent = 'Tap again to confirm'; return; } S = {name:S.name,gems:0,done:{},quiz:{},solved:{},games:{},tries:{},gym:{},mock:null}; save(); bg.remove(); route(); toast('Fresh start!'); };
   });
 }
 function welcome(){

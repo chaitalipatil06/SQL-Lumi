@@ -39,5 +39,43 @@ out=["CREATE TABLE departments (dept_id INTEGER PRIMARY KEY, dept_name TEXT NOT 
 "CREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER REFERENCES customers(customer_id), emp_id INTEGER REFERENCES employees(emp_id), product_id INTEGER REFERENCES products(product_id), order_date TEXT, quantity INTEGER, amount INTEGER, status TEXT);"]
 for t,rows in [('departments',deps),('employees',emps),('customers',custs),('products',prods),('orders',orders)]:
     out.append(f"INSERT INTO {t} VALUES "+",".join("("+",".join(v(x) for x in r)+")" for r in rows)+";")
+
+# ---- product analytics tables (separate RNG so earlier tables stay identical) ----
+import datetime as _dt
+R2=random.Random(2025)
+channels=['Organic','Paid Search','Referral','Social']; countries=['US','US','US','UK','India','Canada']
+users=[]; events=[]; eid=1
+for u in range(1,61):
+    sd=_dt.date(2025,1,1)+_dt.timedelta(days=R2.randint(0,180))
+    ch=R2.choice(channels); users.append((u,sd.isoformat(),ch,R2.choice(countries)))
+    plat=R2.choice(['web','web','ios','android'])
+    events.append((eid,u,'visit',(sd-_dt.timedelta(days=R2.randint(0,3))).isoformat(),plat)); eid+=1
+    p_sign={'Organic':.8,'Paid Search':.6,'Referral':.9,'Social':.55}[ch]
+    if R2.random()<p_sign:
+        events.append((eid,u,'signup',sd.isoformat(),plat)); eid+=1
+        if R2.random()<.6:
+            events.append((eid,u,'trial_start',(sd+_dt.timedelta(days=R2.randint(0,5))).isoformat(),plat)); eid+=1
+            if R2.random()<.5:
+                events.append((eid,u,'purchase',(sd+_dt.timedelta(days=R2.randint(6,20))).isoformat(),plat)); eid+=1
+        # monthly logins with decay
+        stay=.85
+        for m in range(1,7):
+            if R2.random()<stay:
+                d=sd+_dt.timedelta(days=30*m+R2.randint(-5,5))
+                if d<=_dt.date(2025,12,31): events.append((eid,u,'login',d.isoformat(),plat)); eid+=1
+                stay*=.88
+            else: break
+        # a few consecutive-day streaks for gaps-and-islands practice
+        if u%7==0:
+            base=sd+_dt.timedelta(days=10)
+            for k in [0,1,2,3,6,7,9]:
+                events.append((eid,u,'login',(base+_dt.timedelta(days=k)).isoformat(),plat)); eid+=1
+events.sort(key=lambda e:(e[3],e[1])); events=[(i+1,)+e[1:] for i,e in enumerate(events)]
+out.append("CREATE TABLE users (user_id INTEGER PRIMARY KEY, signup_date TEXT, channel TEXT, country TEXT);")
+out.append("CREATE TABLE events (event_id INTEGER PRIMARY KEY, user_id INTEGER REFERENCES users(user_id), event_name TEXT, event_date TEXT, platform TEXT);")
+for t,rows in [('users',users),('events',events)]:
+    out.append(f"INSERT INTO {t} VALUES "+",".join("("+",".join(v(x) for x in r)+")" for r in rows)+";")
+print('events',len(events))
+
 open('seed.sql','w').write("\n".join(out))
 print(len(orders))

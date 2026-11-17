@@ -200,7 +200,7 @@ footer{position:relative;z-index:1;text-align:center;color:var(--muted);font-siz
   .play{grid-template-columns:1fr}.opts{grid-template-columns:1fr}
   .ch-head{grid-template-columns:1fr;text-align:center}.ch-head .art{margin:0 auto}
   .nav{display:none}.pill .bar{width:60px}.memgrid{grid-template-columns:repeat(3,1fr)}
-  .map{height:auto}.map svg.path{display:none}.node{position:relative;left:auto!important;top:auto!important;transform:none;width:auto;flex-direction:row;margin:10px 0}
+  .map{height:auto!important}.map svg.path{display:none}.node{position:relative;left:auto!important;top:auto!important;transform:none;width:auto;flex-direction:row;margin:10px 0}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .order-strip{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
@@ -209,14 +209,41 @@ footer{position:relative;z-index:1;text-align:center;color:var(--muted);font-siz
 .order-strip span:not(:last-child):after{content:"→";position:absolute;right:-11px;top:7px;color:#b9a2ff}
 .kicker{font-weight:800}
 .checklist li{list-style:"✅ "}
+.plist{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.prob{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px 14px;border-radius:16px;background:#fff;border:1px solid var(--line);text-decoration:none;color:var(--ink);transition:transform .15s}
+.prob:hover{transform:translateY(-3px);box-shadow:var(--shadow)}.prob.solved{background:#f2fff8}
+.pid{font-family:'JetBrains Mono',monospace;font-weight:800;border-radius:10px;padding:4px 8px;font-size:13px}
+.pt{display:flex;flex-direction:column;gap:3px}.tags{display:flex;gap:4px;flex-wrap:wrap}.tags i{font-style:normal;font-size:11px;background:#f4effc;border-radius:6px;padding:1px 6px;color:#6a5a95;font-weight:700}
+.pst{font-size:18px}
+[hidden]{display:none!important}
+.cmp{margin-top:10px}
+.cmp-notes{background:#f6f1ff;border-radius:12px;padding:8px 12px;font-size:14px;margin-bottom:8px;line-height:1.5}
+.cmp-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+.cmp-arrow{text-align:center;font-size:13px;letter-spacing:1px;color:#8a6fd1;font-weight:800;animation:nudge 1.6s ease-in-out infinite}
+@keyframes nudge{50%{transform:translateY(3px)}}
+.cmp-h{font-size:12px;font-weight:800;letter-spacing:1px;color:#8a6fd1;margin:2px 2px 6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.cmp-h .tname{letter-spacing:0;color:var(--muted);font-weight:700;text-transform:none}
+.btab{border:1px solid var(--line);background:#fff;border-radius:8px;padding:2px 9px;font-weight:700;font-size:12px;letter-spacing:0;color:var(--muted)}
+.btab.on{background:var(--lav2);color:#fff;border-color:var(--lav2)}
+.cmp .tblwrap{max-height:260px}
+table.res tr.kept td{background:#e3fbef}
+table.res tr.dropped td{opacity:.35}
+table.res tr.added td{background:#d9f7e6;font-weight:700}
+table.res tr.deleted td{background:#ffe1e1;text-decoration:line-through;opacity:.75}
+table.res td.chg{background:#fff1b8!important;font-weight:800}
+table.res th.usedcol{background:#ffd6e0;color:#a2355e}
+.legend{font-size:12px;color:var(--muted);margin:6px 2px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.legend span{display:inline-block;width:12px;height:12px;border-radius:4px}.legend .lk{background:#e3fbef;border:1px solid #9fdcbf}.legend .ld{background:#eee;opacity:.6}.legend .lu{background:#ffd6e0}
+.cmptoggle{display:inline-flex;gap:5px;align-items:center;cursor:pointer}
+
 </style></head>
 <body><div class="bubbles"></div>
 <header class="topbar"><a class="brand" href="#home"><span style="font-size:28px">🫧</span><b>SQL Quest</b></a>
-<nav class="nav"><a href="#home">Map</a><a href="#ch-1" data-k="learn">Learn</a><a href="#cheatsheet">Cheat sheet</a></nav>
+<nav class="nav"><a href="#home">Map</a><a href="#ch-1" data-k="learn">Learn</a><a href="#gym">Practice Gym</a><a href="#mock">Mock interview</a><a href="#cheatsheet">Cheat sheet</a></nav>
 <div class="stats"><div class="pill"><span id="lvl">Data Sprout</span></div><div class="pill"><div class="bar"><i id="topProgress" style="width:0"></i></div><span id="topPct">0%</span></div><div class="pill gem" id="gemPill">💎 <span id="gemCount">0</span></div><button class="iconbtn" id="settingsBtn" title="Progress & settings">⚙️</button></div></header>
 <main></main>
 <footer>SQL Quest · Lumi is an original mascot · Practice data is fictional · Runs entirely in your browser</footer>
-<script>const SEED_SQL = "CREATE TABLE departments (dept_id INTEGER PRIMARY KEY, dept_name TEXT NOT NULL, location TEXT);\nCREATE TABLE employees (emp_id INTEGER PRIMARY KEY, name TEXT NOT NULL, dept_id INTEGER REFERENCES departments(dept_id), manager_id INTEGER REFERENCES employees(emp_id), hire_date TEXT, salary INTEGER);\nCREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, region TEXT, signup_date TEXT);\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, product_name TEXT, category TEXT, price INTEGER);\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER REFERENCES customers(customer_id), emp_id INTEGER REFERENCES employees(emp_id), product_id INTEGER REFERENCES products(product_id), order_date TEXT, quantity INTEGER, amount INTEGER, status TEXT);\nINSERT INTO departments VALUES (1,'Sales','New York'),(2,'Marketing','Austin'),(3,'Operations','Chicago'),(4,'Finance','New York'),(5,'Product','San Francisco'),(6,'HR','Remote');\nINSERT INTO employees VALUES (1,'Maya Patel',NULL,NULL,'2016-03-01',185000),(2,'Leo Garcia',1,1,'2018-06-15',140000),(3,'Aisha Khan',1,2,'2020-01-10',82000),(4,'Ben Carter',1,2,'2021-04-05',76000),(5,'Chloe Wu',1,2,'2022-09-19',71000),(6,'Ravi Iyer',2,1,'2019-02-11',125000),(7,'Sofia Rossi',2,6,'2021-07-01',68000),(8,'Tom Becker',2,6,NULL,64000),(9,'Nora Silva',3,1,'2017-11-20',130000),(10,'Omar Haddad',3,9,'2020-05-25',72000),(11,'Grace Lee',3,9,'2023-02-14',61000),(12,'Daniel Kim',4,1,'2018-08-08',135000),(13,'Emma Novak',4,12,'2022-03-30',79000),(14,'Priya Shah',5,1,'2019-10-01',150000),(15,'Jack Murphy',5,14,'2021-12-06',118000),(16,'Lina Costa',6,1,'2020-08-17',98000);\nINSERT INTO customers VALUES (1,'Acme Corp','West','2025-02-04'),(2,'Blue Harbor','North','2025-03-07'),(3,'Cedar Labs','South','2025-04-10'),(4,'Delta Foods','East','2025-05-13'),(5,'Evergreen Inc','West','2025-06-16'),(6,'Fable Studio','North','2025-07-19'),(7,'Granite Bank','South','2025-08-22'),(8,'Helio Energy','East','2025-09-25'),(9,'Iris Health','West','2025-10-01'),(10,'Juniper Retail','North','2025-11-04'),(11,'Kite Logistics','South','2025-12-07'),(12,'Lotus Travel','East','2025-01-10'),(13,'Maple Schools',NULL,'2025-02-13'),(14,'Nimbus Cloud','North','2025-03-16');\nINSERT INTO products VALUES (1,'Starter Plan','Software',49),(2,'Pro Plan','Software',199),(3,'Enterprise Plan','Software',999),(4,'Onboarding Workshop','Services',1500),(5,'Data Audit','Services',3200),(6,'Support Add-on','Software',99);\nINSERT INTO orders VALUES (1,6,3,1,'2025-01-03',5,245,'completed'),(2,6,5,2,'2025-01-22',4,796,'completed'),(3,4,4,2,'2025-01-27',5,995,'completed'),(4,9,3,2,'2025-02-03',1,199,'completed'),(5,8,2,5,'2025-02-08',1,3200,'completed'),(6,5,3,1,'2025-02-09',2,98,'pending'),(7,5,2,2,'2025-02-09',5,995,'cancelled'),(8,2,3,6,'2025-02-22',4,396,'completed'),(9,5,5,4,'2025-03-14',1,1500,'completed'),(10,12,5,3,'2025-03-14',1,999,'cancelled'),(11,3,3,1,'2025-03-16',2,98,'completed'),(12,9,5,2,'2025-03-18',3,597,'completed'),(13,4,5,4,'2025-03-23',1,1500,'completed'),(14,8,5,6,'2025-03-27',5,495,'completed'),(15,2,2,6,'2025-04-03',4,396,'pending'),(16,9,2,1,'2025-05-02',2,98,'completed'),(17,8,5,6,'2025-05-03',4,396,'completed'),(18,1,5,4,'2025-05-07',1,1500,'completed'),(19,4,5,1,'2025-05-17',3,147,'completed'),(20,6,3,6,'2025-06-03',2,198,'completed'),(21,6,4,6,'2025-06-10',5,495,'completed'),(22,9,4,1,'2025-06-20',1,49,'pending'),(23,3,4,3,'2025-07-28',1,999,'completed'),(24,3,5,4,'2025-07-28',1,1500,'pending'),(25,6,5,2,'2025-08-02',5,995,'completed'),(26,3,3,4,'2025-08-08',1,1500,'completed'),(27,4,3,5,'2025-08-20',1,3200,'pending'),(28,4,3,6,'2025-09-16',2,198,'completed'),(29,9,2,2,'2025-09-17',5,995,'completed'),(30,11,3,5,'2025-09-18',1,3200,'completed'),(31,12,4,4,'2025-09-18',1,1500,'cancelled'),(32,9,2,2,'2025-10-07',5,995,'completed'),(33,12,5,3,'2025-10-10',1,999,'completed'),(34,3,3,4,'2025-10-12',1,1500,'completed'),(35,2,4,6,'2025-12-03',4,396,'completed'),(36,12,4,4,'2025-12-06',1,1500,'completed'),(37,5,2,6,'2025-12-12',2,198,'cancelled'),(38,9,5,5,'2025-12-18',1,3200,'pending'),(39,2,5,4,'2025-12-22',1,1500,'completed'),(40,6,3,2,'2026-01-03',4,796,'cancelled'),(41,9,2,2,'2026-01-03',3,597,'cancelled'),(42,3,4,2,'2026-01-04',3,597,'completed'),(43,6,5,6,'2026-01-13',4,396,'completed'),(44,12,4,6,'2026-02-04',3,297,'completed'),(45,8,2,5,'2026-02-27',1,3200,'completed'),(46,12,4,2,'2026-03-14',5,995,'pending'),(47,3,4,3,'2026-04-01',1,999,'completed'),(48,7,2,6,'2026-04-06',2,198,'completed'),(49,9,4,5,'2026-04-20',1,3200,'cancelled'),(50,12,2,4,'2026-04-27',1,1500,'completed'),(51,11,4,2,'2026-06-06',3,597,'completed'),(52,11,3,1,'2026-07-02',5,245,'pending'),(53,12,4,6,'2026-07-08',3,297,'completed'),(54,11,2,6,'2026-07-22',3,297,'completed'),(55,6,3,5,'2026-08-19',1,3200,'cancelled'),(56,3,2,1,'2026-08-26',2,98,'completed'),(57,3,2,1,'2026-09-13',4,196,'completed'),(58,9,3,1,'2026-09-17',3,147,'completed'),(59,7,3,2,'2026-10-16',5,995,'completed'),(60,9,3,2,'2026-10-21',1,199,'completed');";</script>
+<script>const SEED_SQL = "CREATE TABLE departments (dept_id INTEGER PRIMARY KEY, dept_name TEXT NOT NULL, location TEXT);\nCREATE TABLE employees (emp_id INTEGER PRIMARY KEY, name TEXT NOT NULL, dept_id INTEGER REFERENCES departments(dept_id), manager_id INTEGER REFERENCES employees(emp_id), hire_date TEXT, salary INTEGER);\nCREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, region TEXT, signup_date TEXT);\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, product_name TEXT, category TEXT, price INTEGER);\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER REFERENCES customers(customer_id), emp_id INTEGER REFERENCES employees(emp_id), product_id INTEGER REFERENCES products(product_id), order_date TEXT, quantity INTEGER, amount INTEGER, status TEXT);\nINSERT INTO departments VALUES (1,'Sales','New York'),(2,'Marketing','Austin'),(3,'Operations','Chicago'),(4,'Finance','New York'),(5,'Product','San Francisco'),(6,'HR','Remote');\nINSERT INTO employees VALUES (1,'Maya Patel',NULL,NULL,'2016-03-01',185000),(2,'Leo Garcia',1,1,'2018-06-15',140000),(3,'Aisha Khan',1,2,'2020-01-10',82000),(4,'Ben Carter',1,2,'2021-04-05',76000),(5,'Chloe Wu',1,2,'2022-09-19',71000),(6,'Ravi Iyer',2,1,'2019-02-11',125000),(7,'Sofia Rossi',2,6,'2021-07-01',68000),(8,'Tom Becker',2,6,NULL,64000),(9,'Nora Silva',3,1,'2017-11-20',130000),(10,'Omar Haddad',3,9,'2020-05-25',72000),(11,'Grace Lee',3,9,'2023-02-14',61000),(12,'Daniel Kim',4,1,'2018-08-08',135000),(13,'Emma Novak',4,12,'2022-03-30',79000),(14,'Priya Shah',5,1,'2019-10-01',150000),(15,'Jack Murphy',5,14,'2021-12-06',118000),(16,'Lina Costa',6,1,'2020-08-17',98000);\nINSERT INTO customers VALUES (1,'Acme Corp','West','2025-02-04'),(2,'Blue Harbor','North','2025-03-07'),(3,'Cedar Labs','South','2025-04-10'),(4,'Delta Foods','East','2025-05-13'),(5,'Evergreen Inc','West','2025-06-16'),(6,'Fable Studio','North','2025-07-19'),(7,'Granite Bank','South','2025-08-22'),(8,'Helio Energy','East','2025-09-25'),(9,'Iris Health','West','2025-10-01'),(10,'Juniper Retail','North','2025-11-04'),(11,'Kite Logistics','South','2025-12-07'),(12,'Lotus Travel','East','2025-01-10'),(13,'Maple Schools',NULL,'2025-02-13'),(14,'Nimbus Cloud','North','2025-03-16');\nINSERT INTO products VALUES (1,'Starter Plan','Software',49),(2,'Pro Plan','Software',199),(3,'Enterprise Plan','Software',999),(4,'Onboarding Workshop','Services',1500),(5,'Data Audit','Services',3200),(6,'Support Add-on','Software',99);\nINSERT INTO orders VALUES (1,6,3,1,'2025-01-03',5,245,'completed'),(2,6,5,2,'2025-01-22',4,796,'completed'),(3,4,4,2,'2025-01-27',5,995,'completed'),(4,9,3,2,'2025-02-03',1,199,'completed'),(5,8,2,5,'2025-02-08',1,3200,'completed'),(6,5,3,1,'2025-02-09',2,98,'pending'),(7,5,2,2,'2025-02-09',5,995,'cancelled'),(8,2,3,6,'2025-02-22',4,396,'completed'),(9,5,5,4,'2025-03-14',1,1500,'completed'),(10,12,5,3,'2025-03-14',1,999,'cancelled'),(11,3,3,1,'2025-03-16',2,98,'completed'),(12,9,5,2,'2025-03-18',3,597,'completed'),(13,4,5,4,'2025-03-23',1,1500,'completed'),(14,8,5,6,'2025-03-27',5,495,'completed'),(15,2,2,6,'2025-04-03',4,396,'pending'),(16,9,2,1,'2025-05-02',2,98,'completed'),(17,8,5,6,'2025-05-03',4,396,'completed'),(18,1,5,4,'2025-05-07',1,1500,'completed'),(19,4,5,1,'2025-05-17',3,147,'completed'),(20,6,3,6,'2025-06-03',2,198,'completed'),(21,6,4,6,'2025-06-10',5,495,'completed'),(22,9,4,1,'2025-06-20',1,49,'pending'),(23,3,4,3,'2025-07-28',1,999,'completed'),(24,3,5,4,'2025-07-28',1,1500,'pending'),(25,6,5,2,'2025-08-02',5,995,'completed'),(26,3,3,4,'2025-08-08',1,1500,'completed'),(27,4,3,5,'2025-08-20',1,3200,'pending'),(28,4,3,6,'2025-09-16',2,198,'completed'),(29,9,2,2,'2025-09-17',5,995,'completed'),(30,11,3,5,'2025-09-18',1,3200,'completed'),(31,12,4,4,'2025-09-18',1,1500,'cancelled'),(32,9,2,2,'2025-10-07',5,995,'completed'),(33,12,5,3,'2025-10-10',1,999,'completed'),(34,3,3,4,'2025-10-12',1,1500,'completed'),(35,2,4,6,'2025-12-03',4,396,'completed'),(36,12,4,4,'2025-12-06',1,1500,'completed'),(37,5,2,6,'2025-12-12',2,198,'cancelled'),(38,9,5,5,'2025-12-18',1,3200,'pending'),(39,2,5,4,'2025-12-22',1,1500,'completed'),(40,6,3,2,'2026-01-03',4,796,'cancelled'),(41,9,2,2,'2026-01-03',3,597,'cancelled'),(42,3,4,2,'2026-01-04',3,597,'completed'),(43,6,5,6,'2026-01-13',4,396,'completed'),(44,12,4,6,'2026-02-04',3,297,'completed'),(45,8,2,5,'2026-02-27',1,3200,'completed'),(46,12,4,2,'2026-03-14',5,995,'pending'),(47,3,4,3,'2026-04-01',1,999,'completed'),(48,7,2,6,'2026-04-06',2,198,'completed'),(49,9,4,5,'2026-04-20',1,3200,'cancelled'),(50,12,2,4,'2026-04-27',1,1500,'completed'),(51,11,4,2,'2026-06-06',3,597,'completed'),(52,11,3,1,'2026-07-02',5,245,'pending'),(53,12,4,6,'2026-07-08',3,297,'completed'),(54,11,2,6,'2026-07-22',3,297,'completed'),(55,6,3,5,'2026-08-19',1,3200,'cancelled'),(56,3,2,1,'2026-08-26',2,98,'completed'),(57,3,2,1,'2026-09-13',4,196,'completed'),(58,9,3,1,'2026-09-17',3,147,'completed'),(59,7,3,2,'2026-10-16',5,995,'completed'),(60,9,3,2,'2026-10-21',1,199,'completed');\nCREATE TABLE users (user_id INTEGER PRIMARY KEY, signup_date TEXT, channel TEXT, country TEXT);\nCREATE TABLE events (event_id INTEGER PRIMARY KEY, user_id INTEGER REFERENCES users(user_id), event_name TEXT, event_date TEXT, platform TEXT);\nINSERT INTO users VALUES (1,'2025-05-23','Organic','Canada'),(2,'2025-04-07','Organic','UK'),(3,'2025-06-13','Social','UK'),(4,'2025-05-20','Paid Search','US'),(5,'2025-01-30','Paid Search','India'),(6,'2025-04-28','Referral','UK'),(7,'2025-03-04','Referral','US'),(8,'2025-05-20','Referral','India'),(9,'2025-05-12','Paid Search','US'),(10,'2025-02-22','Paid Search','US'),(11,'2025-05-27','Paid Search','US'),(12,'2025-03-03','Referral','US'),(13,'2025-05-23','Paid Search','US'),(14,'2025-02-08','Referral','Canada'),(15,'2025-06-04','Paid Search','US'),(16,'2025-06-07','Organic','US'),(17,'2025-06-13','Organic','US'),(18,'2025-04-11','Social','US'),(19,'2025-03-15','Organic','US'),(20,'2025-01-29','Referral','US'),(21,'2025-05-20','Referral','India'),(22,'2025-01-28','Social','Canada'),(23,'2025-02-01','Referral','UK'),(24,'2025-06-26','Organic','US'),(25,'2025-02-09','Organic','US'),(26,'2025-04-05','Social','US'),(27,'2025-06-12','Paid Search','US'),(28,'2025-02-05','Paid Search','UK'),(29,'2025-06-12','Organic','UK'),(30,'2025-03-08','Organic','Canada'),(31,'2025-05-17','Referral','Canada'),(32,'2025-05-14','Referral','Canada'),(33,'2025-02-19','Organic','UK'),(34,'2025-05-28','Organic','US'),(35,'2025-01-11','Paid Search','US'),(36,'2025-05-13','Paid Search','UK'),(37,'2025-01-03','Social','US'),(38,'2025-04-11','Referral','India'),(39,'2025-02-28','Organic','India'),(40,'2025-05-01','Social','US'),(41,'2025-02-04','Social','US'),(42,'2025-04-06','Social','UK'),(43,'2025-05-10','Paid Search','UK'),(44,'2025-05-20','Organic','US'),(45,'2025-05-18','Referral','US'),(46,'2025-02-16','Social','US'),(47,'2025-06-24','Referral','UK'),(48,'2025-02-28','Social','India'),(49,'2025-02-06','Organic','US'),(50,'2025-03-28','Organic','US'),(51,'2025-02-24','Organic','UK'),(52,'2025-04-06','Organic','US'),(53,'2025-04-18','Paid Search','India'),(54,'2025-04-13','Organic','Canada'),(55,'2025-06-22','Referral','UK'),(56,'2025-04-22','Social','Canada'),(57,'2025-03-18','Organic','US'),(58,'2025-05-05','Paid Search','UK'),(59,'2025-01-01','Social','US'),(60,'2025-02-12','Referral','India');\nINSERT INTO events VALUES (1,59,'visit','2025-01-01','android'),(2,59,'signup','2025-01-01','android'),(3,37,'visit','2025-01-02','android'),(4,59,'trial_start','2025-01-05','android'),(5,35,'visit','2025-01-10','android'),(6,35,'signup','2025-01-11','android'),(7,35,'trial_start','2025-01-13','android'),(8,59,'purchase','2025-01-19','android'),(9,35,'login','2025-01-21','android'),(10,35,'login','2025-01-22','android'),(11,35,'login','2025-01-23','android'),(12,35,'login','2025-01-24','android'),(13,22,'visit','2025-01-27','ios'),(14,35,'login','2025-01-27','android'),(15,59,'login','2025-01-27','android'),(16,22,'signup','2025-01-28','ios'),(17,35,'login','2025-01-28','android'),(18,20,'visit','2025-01-29','ios'),(19,20,'signup','2025-01-29','ios'),(20,23,'visit','2025-01-29','ios'),(21,5,'visit','2025-01-30','ios'),(22,22,'trial_start','2025-01-30','ios'),(23,35,'login','2025-01-30','android'),(24,23,'signup','2025-02-01','ios'),(25,41,'visit','2025-02-01','web'),(26,20,'trial_start','2025-02-02','ios'),(27,28,'visit','2025-02-02','android'),(28,41,'signup','2025-02-04','web'),(29,49,'visit','2025-02-04','web'),(30,14,'visit','2025-02-05','android'),(31,49,'signup','2025-02-06','web'),(32,49,'trial_start','2025-02-07','web'),(33,14,'signup','2025-02-08','android'),(34,25,'visit','2025-02-08','ios'),(35,41,'trial_start','2025-02-08','web'),(36,22,'purchase','2025-02-09','ios'),(37,25,'signup','2025-02-09','ios'),(38,14,'trial_start','2025-02-10','android'),(39,35,'login','2025-02-10','android'),(40,41,'purchase','2025-02-11','web'),(41,60,'visit','2025-02-12','ios'),(42,60,'signup','2025-02-12','ios'),(43,25,'trial_start','2025-02-13','ios'),(44,46,'visit','2025-02-13','web'),(45,49,'purchase','2025-02-15','web'),(46,49,'login','2025-02-16','web'),(47,49,'login','2025-02-17','web'),(48,14,'login','2025-02-18','android'),(49,33,'visit','2025-02-18','web'),(50,49,'login','2025-02-18','web'),(51,14,'login','2025-02-19','android'),(52,33,'signup','2025-02-19','web'),(53,33,'trial_start','2025-02-19','web'),(54,49,'login','2025-02-19','web'),(55,14,'login','2025-02-20','android'),(56,10,'visit','2025-02-21','web'),(57,14,'login','2025-02-21','android'),(58,49,'login','2025-02-22','web'),(59,51,'visit','2025-02-22','web'),(60,49,'login','2025-02-23','web'),(61,14,'purchase','2025-02-24','android'),(62,14,'login','2025-02-24','android'),(63,51,'signup','2025-02-24','web'),(64,14,'login','2025-02-25','android'),(65,49,'login','2025-02-25','web'),(66,39,'visit','2025-02-26','ios'),(67,14,'login','2025-02-27','android'),(68,20,'login','2025-02-27','ios'),(69,48,'visit','2025-02-28','web'),(70,12,'visit','2025-03-01','web'),(71,23,'login','2025-03-01','ios'),(72,22,'login','2025-03-02','ios'),(73,7,'visit','2025-03-03','ios'),(74,12,'signup','2025-03-03','web'),(75,7,'signup','2025-03-04','ios'),(76,12,'trial_start','2025-03-04','web'),(77,33,'purchase','2025-03-04','web'),(78,59,'login','2025-03-05','android'),(79,30,'visit','2025-03-06','ios'),(80,25,'login','2025-03-08','ios'),(81,30,'signup','2025-03-08','ios'),(82,41,'login','2025-03-09','web'),(83,49,'login','2025-03-10','web'),(84,60,'login','2025-03-11','ios'),(85,19,'visit','2025-03-12','android'),(86,7,'login','2025-03-14','ios'),(87,7,'login','2025-03-15','ios'),(88,19,'signup','2025-03-15','android'),(89,7,'login','2025-03-16','ios'),(90,7,'login','2025-03-17','ios'),(91,35,'login','2025-03-17','android'),(92,57,'visit','2025-03-18','android'),(93,57,'signup','2025-03-18','android'),(94,7,'login','2025-03-20','ios'),(95,7,'login','2025-03-21','ios'),(96,57,'trial_start','2025-03-21','android'),(97,7,'login','2025-03-23','ios'),(98,33,'login','2025-03-23','web'),(99,50,'visit','2025-03-26','ios'),(100,51,'login','2025-03-26','web'),(101,59,'login','2025-03-28','android'),(102,7,'login','2025-03-30','ios'),(103,12,'login','2025-03-30','web'),(104,23,'login','2025-03-30','ios'),(105,22,'login','2025-04-03','ios'),(106,30,'login','2025-04-03','ios'),(107,52,'visit','2025-04-03','web'),(108,57,'purchase','2025-04-03','android'),(109,20,'login','2025-04-04','ios'),(110,26,'visit','2025-04-04','web'),(111,42,'visit','2025-04-05','ios'),(112,2,'visit','2025-04-07','web'),(113,2,'signup','2025-04-07','web'),(114,2,'trial_start','2025-04-08','web'),(115,38,'visit','2025-04-08','android'),(116,49,'login','2025-04-08','web'),(117,18,'visit','2025-04-11','android'),(118,38,'signup','2025-04-11','android'),(119,57,'login','2025-04-12','android'),(120,25,'login','2025-04-13','ios'),(121,54,'visit','2025-04-13','android'),(122,54,'signup','2025-04-13','android'),(123,19,'login','2025-04-14','android'),(124,38,'trial_start','2025-04-15','android'),(125,60,'login','2025-04-15','ios'),(126,38,'purchase','2025-04-17','android'),(127,54,'trial_start','2025-04-17','android'),(128,53,'visit','2025-04-18','web'),(129,53,'signup','2025-04-18','web'),(130,33,'login','2025-04-19','web'),(131,54,'purchase','2025-04-20','android'),(132,56,'visit','2025-04-22','web'),(133,56,'signup','2025-04-22','web'),(134,6,'visit','2025-04-26','web'),(135,22,'login','2025-04-26','ios'),(136,56,'trial_start','2025-04-27','web'),(137,6,'signup','2025-04-28','web'),(138,20,'login','2025-04-28','ios'),(139,40,'visit','2025-04-28','ios'),(140,51,'login','2025-04-29','web'),(141,6,'trial_start','2025-05-01','web'),(142,56,'login','2025-05-02','web'),(143,56,'login','2025-05-03','web'),(144,56,'login','2025-05-04','web'),(145,2,'login','2025-05-05','web'),(146,6,'purchase','2025-05-05','web'),(147,12,'login','2025-05-05','web'),(148,30,'login','2025-05-05','ios'),(149,56,'login','2025-05-05','web'),(150,58,'visit','2025-05-05','web'),(151,58,'signup','2025-05-05','web'),(152,59,'login','2025-05-05','android'),(153,58,'trial_start','2025-05-06','web'),(154,23,'login','2025-05-07','ios'),(155,43,'visit','2025-05-07','ios'),(156,7,'login','2025-05-08','ios'),(157,25,'login','2025-05-08','ios'),(158,56,'login','2025-05-08','web'),(159,9,'visit','2025-05-09','web'),(160,38,'login','2025-05-09','android'),(161,49,'login','2025-05-09','web'),(162,56,'login','2025-05-09','web'),(163,36,'visit','2025-05-10','ios'),(164,43,'signup','2025-05-10','ios'),(165,56,'purchase','2025-05-11','web'),(166,56,'login','2025-05-11','web'),(167,54,'login','2025-05-12','android'),(168,32,'visit','2025-05-13','web'),(169,36,'signup','2025-05-13','ios'),(170,60,'login','2025-05-13','ios'),(171,32,'signup','2025-05-14','web'),(172,43,'trial_start','2025-05-14','ios'),(173,31,'visit','2025-05-15','ios'),(174,32,'trial_start','2025-05-15','web'),(175,36,'trial_start','2025-05-15','ios'),(176,45,'visit','2025-05-16','android'),(177,19,'login','2025-05-17','android'),(178,31,'signup','2025-05-17','ios'),(179,56,'login','2025-05-17','web'),(180,58,'purchase','2025-05-17','web'),(181,44,'visit','2025-05-18','ios'),(182,45,'signup','2025-05-18','android'),(183,45,'trial_start','2025-05-18','android'),(184,53,'login','2025-05-18','web'),(185,4,'visit','2025-05-19','web'),(186,21,'visit','2025-05-19','ios'),(187,57,'login','2025-05-19','android'),(188,8,'visit','2025-05-20','web'),(189,8,'signup','2025-05-20','web'),(190,21,'signup','2025-05-20','ios'),(191,33,'login','2025-05-20','web'),(192,44,'signup','2025-05-20','ios'),(193,13,'visit','2025-05-21','ios'),(194,21,'trial_start','2025-05-21','ios'),(195,1,'visit','2025-05-22','android'),(196,1,'signup','2025-05-23','android'),(197,13,'signup','2025-05-23','ios'),(198,13,'trial_start','2025-05-25','ios'),(199,1,'trial_start','2025-05-26','android'),(200,11,'visit','2025-05-27','web'),(201,11,'signup','2025-05-27','web'),(202,34,'visit','2025-05-27','ios'),(203,11,'trial_start','2025-05-28','web'),(204,23,'login','2025-05-28','ios'),(205,34,'signup','2025-05-28','ios'),(206,20,'login','2025-05-30','ios'),(207,21,'login','2025-05-30','ios'),(208,21,'login','2025-05-31','ios'),(209,22,'login','2025-05-31','ios'),(210,6,'login','2025-06-01','web'),(211,21,'login','2025-06-01','ios'),(212,59,'login','2025-06-01','android'),(213,15,'visit','2025-06-02','web'),(214,21,'login','2025-06-02','ios'),(215,34,'trial_start','2025-06-02','ios'),(216,15,'signup','2025-06-04','web'),(217,16,'visit','2025-06-05','web'),(218,21,'purchase','2025-06-05','ios'),(219,21,'login','2025-06-05','ios'),(220,34,'purchase','2025-06-05','ios'),(221,38,'login','2025-06-05','android'),(222,12,'login','2025-06-06','web'),(223,21,'login','2025-06-06','ios'),(224,30,'login','2025-06-06','ios'),(225,43,'login','2025-06-06','ios'),(226,16,'signup','2025-06-07','web'),(227,25,'login','2025-06-07','ios'),(228,21,'login','2025-06-08','ios'),(229,36,'login','2025-06-08','ios'),(230,49,'login','2025-06-08','web'),(231,15,'trial_start','2025-06-09','web'),(232,16,'trial_start','2025-06-09','web'),(233,29,'visit','2025-06-09','ios'),(234,60,'login','2025-06-09','ios'),(235,17,'visit','2025-06-10','web'),(236,19,'login','2025-06-10','android'),(237,27,'visit','2025-06-10','ios'),(238,32,'login','2025-06-10','web'),(239,29,'signup','2025-06-12','ios'),(240,3,'visit','2025-06-13','ios'),(241,17,'signup','2025-06-13','web'),(242,29,'trial_start','2025-06-13','ios'),(243,15,'purchase','2025-06-18','web'),(244,31,'login','2025-06-18','ios'),(245,21,'login','2025-06-21','ios'),(246,53,'login','2025-06-21','web'),(247,44,'login','2025-06-22','ios'),(248,45,'login','2025-06-22','android'),(249,47,'visit','2025-06-22','web'),(250,55,'visit','2025-06-22','ios'),(251,55,'signup','2025-06-22','ios'),(252,56,'login','2025-06-22','web'),(253,1,'login','2025-06-23','android'),(254,8,'login','2025-06-23','web'),(255,33,'login','2025-06-24','web'),(256,47,'signup','2025-06-24','web'),(257,55,'trial_start','2025-06-24','ios'),(258,24,'visit','2025-06-25','web'),(259,34,'login','2025-06-25','ios'),(260,24,'signup','2025-06-26','web'),(261,20,'login','2025-06-28','ios'),(262,15,'login','2025-06-30','web'),(263,6,'login','2025-07-01','web'),(264,16,'login','2025-07-02','web'),(265,12,'login','2025-07-06','web'),(266,55,'purchase','2025-07-08','ios'),(267,17,'login','2025-07-09','web'),(268,32,'login','2025-07-09','web'),(269,43,'login','2025-07-11','ios'),(270,36,'login','2025-07-13','ios'),(271,25,'login','2025-07-14','ios'),(272,19,'login','2025-07-15','android'),(273,38,'login','2025-07-15','android'),(274,21,'login','2025-07-16','ios'),(275,29,'login','2025-07-17','ios'),(276,45,'login','2025-07-17','android'),(277,1,'login','2025-07-18','android'),(278,31,'login','2025-07-20','ios'),(279,53,'login','2025-07-20','web'),(280,47,'login','2025-07-21','web'),(281,8,'login','2025-07-23','web'),(282,24,'login','2025-07-23','web'),(283,6,'login','2025-07-27','web'),(284,34,'login','2025-08-01','ios'),(285,15,'login','2025-08-03','web'),(286,38,'login','2025-08-05','android'),(287,16,'login','2025-08-09','web'),(288,43,'login','2025-08-09','ios'),(289,25,'login','2025-08-10','ios'),(290,32,'login','2025-08-10','web'),(291,29,'login','2025-08-11','ios'),(292,36,'login','2025-08-11','ios'),(293,45,'login','2025-08-13','android'),(294,8,'login','2025-08-19','web'),(295,24,'login','2025-08-20','web'),(296,21,'login','2025-08-22','ios'),(297,34,'login','2025-08-25','ios'),(298,47,'login','2025-08-27','web'),(299,16,'login','2025-09-04','web'),(300,43,'login','2025-09-04','ios'),(301,29,'login','2025-09-05','ios'),(302,36,'login','2025-09-12','ios'),(303,34,'login','2025-09-24','ios'),(304,24,'login','2025-09-29','web'),(305,16,'login','2025-10-10','web'),(306,36,'login','2025-10-10','ios'),(307,16,'login','2025-11-03','web');";</script>
 <script>// ===== SQL Quest course content =====
 // All examples run on SQLite (in the browser). Differences from other databases are called out.
 const ROLES = [
@@ -705,7 +732,7 @@ FROM yearly;</pre>
         <li>Month-over-month change (<code>LAG</code>)</li>
         <li>Explain: WHERE vs HAVING, INNER vs LEFT JOIN, UNION vs UNION ALL, DELETE vs TRUNCATE</li>
       </ul>
-      <p>Bonus to try: employees who earn more than their manager.</p>
+      <p>Bonus to try: employees who earn more than their manager. (Spoiler: nobody at Lumi Labs does! Change it to <code>e.salary &gt;= 0.75 * m.salary</code> to see results.)</p>
       <pre class="sql">SELECT e.name, e.salary, m.name AS manager, m.salary AS manager_salary
 FROM employees e
 JOIN employees m ON m.emp_id = e.manager_id
@@ -760,6 +787,405 @@ const GAMES = [
       ["PARTITION BY collapses rows like GROUP BY.", false], ["BETWEEN is inclusive of both ends.", true]
     ] }
 ];
+
+// ===== SQL Quest: advanced chapters 11-16 (business analytics level) =====
+CHAPTERS.push(
+// ---------------------------------------------------------------- 11
+{
+  id: 11, title: "Changing Data", sub: "INSERT, UPDATE, DELETE, UPSERT and transactions", art: "switch", color: "#ffd6e0",
+  lumi: "So far we've only read data. Now we change it! Always preview with SELECT first. Lumi's golden safety rule.",
+  roleTip: "Analysts fix bad records, load lookup tables and maintain mapping tables. Interviewers ask: \"What's the difference between DELETE and TRUNCATE?\" and \"How do you undo a mistake?\"",
+  sections: [
+    { h: "INSERT: add rows", html: `
+      <pre class="sql">INSERT INTO products (product_id, product_name, category, price)
+VALUES (7, 'Analytics Add-on', 'Software', 299);
+
+SELECT * FROM products;</pre>
+      <p>List the columns, then the values in the same order. Add several rows at once by separating them with commas: <code>VALUES (...), (...)</code>.</p>
+      <div class="callout tip">The playground keeps your changes. Click <b>↺ Reset data</b> at any time to restore the original tables.</div>` },
+    { h: "UPDATE: change rows", html: `
+      <p><b>Step 1: preview</b> which rows will change:</p>
+      <pre class="sql">SELECT product_name, price FROM products WHERE category = 'Software';</pre>
+      <p><b>Step 2: update</b> using the exact same WHERE:</p>
+      <pre class="sql">UPDATE products
+SET price = price * 1.10
+WHERE category = 'Software';
+
+SELECT product_name, price FROM products;</pre>
+      <div class="callout warn">An UPDATE without WHERE changes <b>every row</b> in the table. Always preview first.</div>` },
+    { h: "DELETE vs TRUNCATE vs DROP", html: `
+      <pre class="sql">DELETE FROM orders WHERE status = 'cancelled';
+SELECT status, COUNT(*) FROM orders GROUP BY status;</pre>
+      <table class="mini"><tr><th>Command</th><th>Removes</th><th>Can filter?</th></tr>
+      <tr><td><code>DELETE FROM t WHERE …</code></td><td>chosen rows</td><td>yes</td></tr>
+      <tr><td><code>TRUNCATE TABLE t</code></td><td>all rows, fast (not in SQLite)</td><td>no</td></tr>
+      <tr><td><code>DROP TABLE t</code></td><td>the whole table and its structure</td><td>no</td></tr></table>` },
+    { h: "Transactions: your undo button", html: `
+      <p>Wrap risky changes in a <b>transaction</b>. <code>COMMIT</code> keeps them and <code>ROLLBACK</code> cancels them all:</p>
+      <pre class="sql">BEGIN;
+DELETE FROM orders;            -- oops, deleted everything!
+ROLLBACK;                      -- phew, undone
+SELECT COUNT(*) AS orders_still_here FROM orders;</pre>
+      <p>Transactions are <b>ACID</b>: <b>A</b>tomic (all or nothing), <b>C</b>onsistent (rules still hold), <b>I</b>solated (others don't see half-done work), and <b>D</b>urable (saved changes survive a crash).</p>` },
+    { h: "UPSERT: insert or update", html: `
+      <p>"Add this product, or update its price if it already exists":</p>
+      <pre class="sql">INSERT INTO products (product_id, product_name, category, price)
+VALUES (2, 'Pro Plan', 'Software', 229)
+ON CONFLICT(product_id) DO UPDATE SET price = excluded.price;
+
+SELECT * FROM products WHERE product_id = 2;</pre>
+      <div class="callout">The same idea in other databases: PostgreSQL uses this exact syntax. MySQL uses <code>ON DUPLICATE KEY UPDATE</code>, and SQL Server and Snowflake use <code>MERGE</code>.</div>` }
+  ],
+  quiz: [
+    { q: "What happens with UPDATE employees SET salary = 0; (no WHERE)?", opts: ["Nothing","Every employee's salary becomes 0","Only the first row changes","It errors"], a: 1, why: "No WHERE means every row. Preview with SELECT and use transactions!" },
+    { q: "You ran a DELETE inside BEGIN and realise it was wrong. What do you run?", opts: ["COMMIT","ROLLBACK","DROP","UNDO"], a: 1, why: "ROLLBACK cancels everything since BEGIN." },
+    { q: "Which removes the table itself, including its structure?", opts: ["DELETE","TRUNCATE","DROP","UPDATE"], a: 2, why: "DROP removes the table definition. DELETE and TRUNCATE only remove rows." }
+  ],
+  challenge: { prompt: "Give every employee in the <b>Sales</b> department (<code>dept_id = 1</code>) a <b>5% raise</b>. We'll check the employees table afterwards.", starter: "UPDATE employees\nSET \nWHERE ", solution: "UPDATE employees SET salary = salary * 1.05 WHERE dept_id = 1;", verify: "SELECT emp_id, salary FROM employees ORDER BY emp_id;", ordered: true, hint: "SET salary = salary * 1.05 WHERE dept_id = 1" }
+},
+// ---------------------------------------------------------------- 12
+{
+  id: 12, title: "Building Tables & Views", sub: "CREATE TABLE, constraints, ALTER, views, normalization", art: "table", color: "#d6ecff",
+  lumi: "Time to be the architect! Good tables have the right types and rules, so bad data can't sneak in.",
+  roleTip: "Analysts build staging tables and saved views that dashboards read from. Normalization (1NF to 3NF) is a classic business analytics interview question.",
+  sections: [
+    { h: "CREATE TABLE with rules (constraints)", html: `
+      <pre class="sql">CREATE TABLE IF NOT EXISTS suppliers (
+  supplier_id INTEGER PRIMARY KEY,
+  name        TEXT NOT NULL UNIQUE,
+  country     TEXT DEFAULT 'US',
+  rating      INTEGER CHECK (rating BETWEEN 1 AND 5)
+);
+INSERT INTO suppliers (name, rating) VALUES ('Northwind', 4);
+SELECT * FROM suppliers;</pre>
+      <p>Now try breaking a rule. The database refuses:</p>
+      <pre class="sql">INSERT INTO suppliers (name, rating) VALUES ('Acme', 9);</pre>
+      <table class="mini"><tr><th>Constraint</th><th>Guarantees</th></tr><tr><td>PRIMARY KEY</td><td>unique row id</td></tr><tr><td>NOT NULL</td><td>value required</td></tr><tr><td>UNIQUE</td><td>no duplicates</td></tr><tr><td>CHECK</td><td>custom rule</td></tr><tr><td>DEFAULT</td><td>value if none given</td></tr><tr><td>FOREIGN KEY / REFERENCES</td><td>value exists in the parent table</td></tr></table>` },
+    { h: "Change a table: ALTER & DROP", html: `
+      <pre class="sql">ALTER TABLE customers ADD COLUMN tier TEXT DEFAULT 'Standard';
+SELECT name, tier FROM customers LIMIT 5;</pre>
+      <p>Remove a table safely with <code>DROP TABLE IF EXISTS suppliers;</code></p>` },
+    { h: "Copy query results into a table", html: `
+      <pre class="sql">CREATE TABLE IF NOT EXISTS orders_2025 AS
+SELECT * FROM orders WHERE order_date LIKE '2025%';
+SELECT COUNT(*) FROM orders_2025;</pre>
+      <p><code>INSERT INTO target SELECT …</code> appends query results to a table that already exists. It's the backbone of many data pipelines.</p>` },
+    { h: "Views: saved queries", html: `
+      <p>A <b>view</b> is a saved SELECT that you query like a table. Teams use views so everyone shares one agreed definition of "revenue".</p>
+      <pre class="sql">CREATE VIEW IF NOT EXISTS v_completed AS
+SELECT order_id, customer_id, order_date, amount
+FROM orders
+WHERE status = 'completed';
+
+SELECT COUNT(*) AS orders, SUM(amount) AS revenue FROM v_completed;</pre>
+      <p>A view stores <i>no data</i>: it re-runs every time. A <b>materialized view</b>, available in PostgreSQL and Snowflake, stores the result for speed.</p>` },
+    { h: "Normalization in plain English", html: `
+      <ul>
+        <li><b>1NF</b>: one value per cell (no "red, blue" in one cell) and no repeating columns (color1, color2…).</li>
+        <li><b>2NF</b>: every column depends on the <i>whole</i> key, not part of it.</li>
+        <li><b>3NF</b>: no column depends on another non-key column. A customer's region lives in <code>customers</code>, not copied onto every order.</li>
+      </ul>
+      <p>Normalized = less duplication and fewer update errors. <b>Data warehouses</b> often <i>denormalize</i> on purpose (star schemas) to make reporting fast.</p>` }
+  ],
+  quiz: [
+    { q: "Which constraint stops a rating of 9 when ratings must be 1–5?", opts: ["UNIQUE","CHECK","DEFAULT","PRIMARY KEY"], a: 1, why: "CHECK enforces a custom rule on values." },
+    { q: "A view…", opts: ["Stores a copy of the data","Is a saved query that runs when you select from it","Speeds up every query automatically","Can't be joined"], a: 1, why: "Plain views store no data; they're saved SELECTs." },
+    { q: "Customer region is copied onto every order row. Which normal form does that break?", opts: ["1NF","3NF","None","It's required"], a: 1, why: "Region depends on the customer, not the order key: a transitive dependency, which 3NF removes." }
+  ],
+  challenge: { prompt: "Create a view named <code>customer_revenue</code> with two columns: <code>customer_id</code> and <code>revenue</code> (sum of <b>completed</b> order amounts). We'll query your view to check it.", starter: "CREATE VIEW customer_revenue AS\nSELECT ", solution: "CREATE VIEW customer_revenue AS SELECT customer_id, SUM(amount) AS revenue FROM orders WHERE status = 'completed' GROUP BY customer_id;", verify: "SELECT * FROM customer_revenue ORDER BY customer_id;", ordered: true, hint: "CREATE VIEW customer_revenue AS SELECT customer_id, SUM(amount) AS revenue FROM orders WHERE status = 'completed' GROUP BY customer_id;" }
+},
+// ---------------------------------------------------------------- 13
+{
+  id: 13, title: "Combine & Clean", sub: "UNION, INTERSECT, EXCEPT, NULL traps, duplicates, CAST", art: "venn", color: "#d9f7e6",
+  lumi: "Real data is messy! Let's stack tables, compare lists, and tame those sneaky NULLs.",
+  roleTip: "\"Why does my count look wrong?\" is usually NULLs or duplicates. Spotting these quickly is what makes an analyst trusted.",
+  sections: [
+    { h: "Stack results: UNION vs UNION ALL", html: `
+      <pre class="sql">SELECT name, 'customer' AS type FROM customers
+UNION ALL
+SELECT name, 'employee' FROM employees;</pre>
+      <p>Both queries must have the same number of columns, with compatible types. <code>UNION</code> removes duplicate rows, which is slower. <code>UNION ALL</code> keeps everything.</p>` },
+    { h: "Compare lists: INTERSECT & EXCEPT", html: `
+      <pre class="sql">-- Customers who bought BOTH the Pro Plan (2) and Enterprise Plan (3)
+SELECT customer_id FROM orders WHERE product_id = 2
+INTERSECT
+SELECT customer_id FROM orders WHERE product_id = 3;</pre>
+      <pre class="sql">-- Customers who ordered but never cancelled
+SELECT customer_id FROM orders
+EXCEPT
+SELECT customer_id FROM orders WHERE status = 'cancelled';</pre>
+      <p>Oracle calls EXCEPT <code>MINUS</code>. Older MySQL versions lack both, so you'd use <code>JOIN</code> or <code>NOT EXISTS</code> instead.</p>` },
+    { h: "NULL traps that break reports", html: `
+      <pre class="sql">SELECT COUNT(*) AS all_rows, COUNT(hire_date) AS with_date, COUNT(DISTINCT dept_id) AS depts
+FROM employees;</pre>
+      <p>The famous <b>NOT IN + NULL</b> trap. This returns 0, because one manager_id is NULL:</p>
+      <pre class="sql">SELECT COUNT(*) FROM employees
+WHERE emp_id NOT IN (SELECT manager_id FROM employees);</pre>
+      <p>Fix it by filtering out the NULLs (or use NOT EXISTS):</p>
+      <pre class="sql">SELECT name FROM employees
+WHERE emp_id NOT IN (SELECT manager_id FROM employees WHERE manager_id IS NOT NULL);</pre>
+      <div class="callout tip"><code>AVG</code> ignores NULLs. To count missing values as 0, write <code>AVG(COALESCE(col, 0))</code>. Decide on purpose!</div>` },
+    { h: "Find and remove duplicates", html: `
+      <pre class="sql">-- Find duplicates
+SELECT customer_id, product_id, COUNT(*) AS n
+FROM orders GROUP BY customer_id, product_id HAVING COUNT(*) > 1;</pre>
+      <pre class="sql">-- Keep only the latest order per customer + product
+WITH r AS (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY customer_id, product_id ORDER BY order_date DESC) AS rn
+  FROM orders)
+SELECT order_id, customer_id, product_id, order_date FROM r WHERE rn = 1;</pre>` },
+    { h: "Types and CAST", html: `
+      <pre class="sql">SELECT CAST('42' AS INTEGER) + 1 AS n,
+       CAST(amount AS REAL) / 3 AS third,
+       typeof(order_date) AS stored_as
+FROM orders LIMIT 3;</pre>
+      <p>Dates stored as text sort correctly <b>only</b> in the format <code>YYYY-MM-DD</code>. In interviews, mention checking data types early.</p>` }
+  ],
+  quiz: [
+    { q: "UNION vs UNION ALL: which keeps duplicates?", opts: ["UNION","UNION ALL","Both","Neither"], a: 1, why: "UNION ALL keeps every row. UNION de-duplicates." },
+    { q: "WHERE id NOT IN (subquery) returns no rows at all. The likely cause?", opts: ["The subquery returns a NULL","A missing index","A typo in SELECT","Too many rows"], a: 0, why: "x NOT IN (…, NULL) is never true. Filter out NULLs or use NOT EXISTS." },
+    { q: "Rows in A that are not in B:", opts: ["INTERSECT","UNION","EXCEPT","JOIN"], a: 2, why: "EXCEPT returns rows of the first query missing from the second." }
+  ],
+  challenge: { prompt: "List the <code>name</code> of employees who <b>don't manage anyone</b> (no employee has them as <code>manager_id</code>). Watch out for the NULL trap!", starter: "SELECT name\nFROM employees\nWHERE ", solution: "SELECT name FROM employees e WHERE NOT EXISTS (SELECT 1 FROM employees x WHERE x.manager_id = e.emp_id);", ordered: false, hint: "NOT EXISTS (SELECT 1 FROM employees x WHERE x.manager_id = e.emp_id)" }
+},
+// ---------------------------------------------------------------- 14
+{
+  id: 14, title: "Dates & Text Deep Dive", sub: "Date math, periods, weekdays, string surgery, formatting", art: "sort", color: "#fff1c9",
+  lumi: "Every business question has a time window: last month, this quarter, year over year. Let's master dates!",
+  roleTip: "Date bucketing and date differences show up in almost every analyst task and take-home assignment.",
+  sections: [
+    { h: "Pull pieces out of a date", html: `
+      <pre class="sql">SELECT order_date,
+       strftime('%Y', order_date) AS year,
+       strftime('%m', order_date) AS month,
+       strftime('%Y-%m', order_date) AS year_month,
+       strftime('%w', order_date) AS weekday_0_sun
+FROM orders LIMIT 5;</pre>
+      <p>Quarter: <code>(CAST(strftime('%m', d) AS INTEGER) + 2) / 3</code>. In PostgreSQL it's simply <code>EXTRACT(QUARTER FROM d)</code>.</p>` },
+    { h: "Date math", html: `
+      <pre class="sql">SELECT order_date,
+       date(order_date, '+30 days')          AS due_date,
+       date(order_date, 'start of month')    AS month_start,
+       date(order_date, 'start of month', '+1 month', '-1 day') AS month_end,
+       CAST(julianday('2026-11-01') - julianday(order_date) AS INTEGER) AS days_ago
+FROM orders LIMIT 5;</pre>
+      <table class="mini"><tr><th>Task</th><th>SQLite</th><th>PostgreSQL</th><th>SQL Server</th></tr>
+      <tr><td>Add days</td><td><code>date(d,'+7 days')</code></td><td><code>d + INTERVAL '7 day'</code></td><td><code>DATEADD(day,7,d)</code></td></tr>
+      <tr><td>Days between</td><td><code>julianday(b)-julianday(a)</code></td><td><code>b - a</code></td><td><code>DATEDIFF(day,a,b)</code></td></tr>
+      <tr><td>Month start</td><td><code>date(d,'start of month')</code></td><td><code>DATE_TRUNC('month',d)</code></td><td><code>DATETRUNC(month,d)</code></td></tr></table>` },
+    { h: "Name the weekday", html: `
+      <pre class="sql">SELECT CASE strftime('%w', order_date)
+         WHEN '0' THEN 'Sun' WHEN '1' THEN 'Mon' WHEN '2' THEN 'Tue' WHEN '3' THEN 'Wed'
+         WHEN '4' THEN 'Thu' WHEN '5' THEN 'Fri' ELSE 'Sat' END AS weekday,
+       COUNT(*) AS orders
+FROM orders GROUP BY weekday ORDER BY orders DESC;</pre>` },
+    { h: "Text surgery", html: `
+      <pre class="sql">SELECT name,
+       LOWER(REPLACE(name, ' ', '.')) || '@lumilabs.com' AS email,
+       SUBSTR(name, 1, INSTR(name, ' ') - 1)              AS first_name,
+       SUBSTR(name, INSTR(name, ' ') + 1)                 AS last_name,
+       LENGTH(name)                                        AS chars
+FROM employees LIMIT 6;</pre>
+      <p>Other useful functions: <code>TRIM</code>, <code>UPPER</code>, <code>REPLACE</code>, and <code>printf('%.2f', x)</code> for number formatting. In PostgreSQL use <code>SPLIT_PART</code> and <code>TO_CHAR</code>; in SQL Server use <code>CHARINDEX</code> and <code>FORMAT</code>.</p>` }
+  ],
+  quiz: [
+    { q: "strftime('%Y-%m', '2025-07-19') returns…", opts: ["2025-07-19","2025-07","07-2025","July 2025"], a: 1, why: "%Y = year, %m = two-digit month." },
+    { q: "Days between two dates in SQLite?", opts: ["b - a on text","julianday(b) - julianday(a)","DATEDIFF(b,a)","DAYS(a,b)"], a: 1, why: "julianday turns dates into numbers you can subtract." },
+    { q: "Why store dates as 'YYYY-MM-DD'?", opts: ["It's shorter","It sorts and compares correctly as text","Excel needs it","No reason"], a: 1, why: "Year-first text sorts chronologically. '03/01/2025' does not." }
+  ],
+  challenge: { prompt: "For each month of <b>2025</b>, count <b>completed</b> orders. Columns: <code>month</code> (format <code>YYYY-MM</code>) and <code>orders</code>, sorted by month.", starter: "SELECT strftime('%Y-%m', order_date) AS month,\n", solution: "SELECT strftime('%Y-%m', order_date) AS month, COUNT(*) AS orders FROM orders WHERE status = 'completed' AND order_date LIKE '2025%' GROUP BY month ORDER BY month;", ordered: true, hint: "WHERE status = 'completed' AND order_date LIKE '2025%' GROUP BY month ORDER BY month" }
+},
+// ---------------------------------------------------------------- 15
+{
+  id: 15, title: "Analytics Patterns", sub: "Funnels, conversion, cohorts & retention, streaks, medians", art: "groups", color: "#efe1ff",
+  lumi: "This is the stuff product and business analysts do every week. Meet the new users and events tables!",
+  roleTip: "Funnel, retention and cohort questions are the core of product analyst and growth interviews. These patterns are reusable templates.",
+  sections: [
+    { h: "Meet users & events", html: `
+      <p><code>users</code>: one row per user (signup_date, channel, country). <code>events</code>: one row per action (visit, signup, trial_start, purchase, login), with a date and a platform.</p>
+      <pre class="sql">SELECT event_name, COUNT(*) AS events, COUNT(DISTINCT user_id) AS users
+FROM events GROUP BY event_name ORDER BY users DESC;</pre>` },
+    { h: "The conversion funnel", html: `
+      <pre class="sql">WITH f AS (
+  SELECT event_name AS step, COUNT(DISTINCT user_id) AS users
+  FROM events
+  WHERE event_name IN ('visit','signup','trial_start','purchase')
+  GROUP BY event_name)
+SELECT step, users,
+       ROUND(100.0 * users / (SELECT users FROM f WHERE step = 'visit'), 1) AS pct_of_visitors
+FROM f ORDER BY users DESC;</pre>
+      <p>Break it down by acquisition channel with conditional counting:</p>
+      <pre class="sql">SELECT u.channel,
+       COUNT(DISTINCT CASE WHEN e.event_name = 'signup'   THEN e.user_id END) AS signups,
+       COUNT(DISTINCT CASE WHEN e.event_name = 'purchase' THEN e.user_id END) AS buyers
+FROM users u JOIN events e ON e.user_id = u.user_id
+GROUP BY u.channel;</pre>` },
+    { h: "Cohort retention", html: `
+      <p>Group users by their <b>signup month</b> (the cohort), then ask: how many came back in month 1, month 2…?</p>
+      <pre class="sql">WITH c AS (
+  SELECT user_id, date(signup_date, 'start of month') AS cohort FROM users),
+a AS (
+  SELECT DISTINCT e.user_id, c.cohort,
+         (CAST(strftime('%Y', e.event_date) AS INTEGER) - CAST(strftime('%Y', c.cohort) AS INTEGER)) * 12
+       + CAST(strftime('%m', e.event_date) AS INTEGER) - CAST(strftime('%m', c.cohort) AS INTEGER) AS month_n
+  FROM events e JOIN c ON c.user_id = e.user_id
+  WHERE e.event_name = 'login')
+SELECT cohort, month_n, COUNT(*) AS active_users
+FROM a GROUP BY cohort, month_n ORDER BY cohort, month_n;</pre>
+      <p>Pivot this result in Excel or Power BI and you've got the classic retention triangle.</p>` },
+    { h: "Streaks: gaps & islands", html: `
+      <p>Consecutive days share the same <code>date − row_number</code>. That neat trick groups each streak together:</p>
+      <pre class="sql">WITH d AS (SELECT DISTINCT user_id, event_date FROM events WHERE event_name = 'login'),
+g AS (SELECT user_id, event_date,
+             julianday(event_date) - ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY event_date) AS grp
+      FROM d)
+SELECT user_id, MIN(event_date) AS streak_start, COUNT(*) AS days
+FROM g GROUP BY user_id, grp
+HAVING COUNT(*) >= 3 ORDER BY days DESC;</pre>` },
+    { h: "Median without a MEDIAN function", html: `
+      <pre class="sql">WITH r AS (
+  SELECT amount, ROW_NUMBER() OVER (ORDER BY amount) AS rn, COUNT(*) OVER () AS n
+  FROM orders WHERE status = 'completed')
+SELECT AVG(amount) AS median_amount
+FROM r WHERE rn IN ((n + 1) / 2, (n + 2) / 2);</pre>
+      <p>PostgreSQL and Snowflake have <code>PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY amount)</code>. Medians resist outliers, so report them alongside averages.</p>` }
+  ],
+  quiz: [
+    { q: "Why COUNT(DISTINCT user_id) in a funnel, not COUNT(*)?", opts: ["It's faster","Users can fire the same event many times","COUNT(*) skips NULLs","No reason"], a: 1, why: "Funnels count people, not clicks." },
+    { q: "A 'cohort' is usually…", opts: ["A product category","Users grouped by when they started","A sales region","A database index"], a: 1, why: "Cohorts group users by a shared start, typically signup month." },
+    { q: "In gaps-and-islands, consecutive dates share the same…", opts: ["date + 1","date − ROW_NUMBER()","COUNT(*)","user_id only"], a: 1, why: "Both increase by 1 together, so their difference stays constant within a streak." }
+  ],
+  challenge: { prompt: "Signup-to-purchase conversion by <code>channel</code>. Columns: <code>channel</code>, <code>signups</code>, <code>purchasers</code>, <code>conversion_pct</code> (purchasers ÷ signups × 100, rounded to 1 decimal).", starter: "SELECT u.channel,\n", solution: "SELECT u.channel, COUNT(DISTINCT CASE WHEN e.event_name = 'signup' THEN e.user_id END) AS signups, COUNT(DISTINCT CASE WHEN e.event_name = 'purchase' THEN e.user_id END) AS purchasers, ROUND(100.0 * COUNT(DISTINCT CASE WHEN e.event_name = 'purchase' THEN e.user_id END) / COUNT(DISTINCT CASE WHEN e.event_name = 'signup' THEN e.user_id END), 1) AS conversion_pct FROM users u JOIN events e ON e.user_id = u.user_id GROUP BY u.channel;", ordered: false, hint: "COUNT(DISTINCT CASE WHEN e.event_name = 'signup' THEN e.user_id END), and the same for purchase, then ROUND(100.0 * purchasers / signups, 1)" }
+},
+// ---------------------------------------------------------------- 16
+{
+  id: 16, title: "Performance & the SQL Interview", sub: "Indexes, query plans, warehouses, and a winning interview method", art: "trophy", color: "#fff0d6",
+  lumi: "The final chapter! Let's make queries fast and walk into your interview with a plan. You've totally got this.",
+  roleTip: "Interviewers grade how you think, not only the final query. The 5-step method below is what strong candidates do out loud.",
+  sections: [
+    { h: "Indexes: the book's index for your table", html: `
+      <p>Without an index, the database reads every row (a <b>full scan</b>). An index lets it jump straight to the matching rows.</p>
+      <pre class="sql">EXPLAIN QUERY PLAN SELECT * FROM orders WHERE customer_id = 3;</pre>
+      <pre class="sql">CREATE INDEX IF NOT EXISTS idx_orders_customer ON orders(customer_id);
+EXPLAIN QUERY PLAN SELECT * FROM orders WHERE customer_id = 3;</pre>
+      <p>The plan changes from <code>SCAN orders</code> to <code>SEARCH orders USING INDEX</code>. Indexes speed up reads but slow down writes, so index columns you <b>filter and join</b> on.</p>` },
+    { h: "Write index-friendly (sargable) filters", html: `
+      <table class="mini"><tr><th>Slow (can't use index)</th><th>Fast</th></tr>
+      <tr><td><code>WHERE strftime('%Y', order_date) = '2025'</code></td><td><code>WHERE order_date &gt;= '2025-01-01' AND order_date &lt; '2026-01-01'</code></td></tr>
+      <tr><td><code>WHERE UPPER(name) = 'ACME'</code></td><td>store clean data, or use a case-insensitive collation</td></tr>
+      <tr><td><code>WHERE name LIKE '%corp'</code></td><td><code>WHERE name LIKE 'corp%'</code></td></tr>
+      <tr><td><code>SELECT *</code> on wide tables</td><td>select only the columns you need</td></tr></table>` },
+    { h: "Warehouse vocabulary", html: `
+      <ul>
+        <li><b>OLTP vs OLAP</b>: apps write many small transactions (OLTP); analytics reads big aggregations (OLAP).</li>
+        <li><b>Star schema</b>: a fact table (orders) surrounded by dimensions (customers, products, dates).</li>
+        <li><b>Grain</b>: what one row represents ("one row per order line"). Always state it first!</li>
+        <li><b>ETL vs ELT</b>: transform before loading, or load raw data and transform inside the warehouse (dbt, Snowflake, BigQuery).</li>
+        <li><b>Slowly changing dimension (SCD Type 2)</b>: keep history by adding a new row with valid_from / valid_to dates.</li>
+      </ul>` },
+    { h: "The 5-step interview method", html: `
+      <ol>
+        <li><b>Clarify:</b> time window? ties? NULLs? "completed orders only?"</li>
+        <li><b>Find the grain</b> of each table and the join keys.</li>
+        <li><b>Build in CTE steps</b> and run each step.</li>
+        <li><b>Check edge cases:</b> empty groups, duplicates, divide-by-zero (<code>NULLIF</code>).</li>
+        <li><b>Explain</b> your result and one improvement (an index, a different metric definition).</li>
+      </ol>
+      <div class="callout tip">Next stop: the <a href="#gym">🏋️ Practice Gym</a> (47 problems) and the <a href="#mock">⏱️ Mock Interview</a>.</div>` }
+  ],
+  quiz: [
+    { q: "Which filter can use an index on order_date?", opts: ["strftime('%Y', order_date) = '2025'","order_date >= '2025-01-01' AND order_date < '2026-01-01'","order_date LIKE '%2025'","CAST(order_date AS TEXT) = '2025'"], a: 1, why: "Wrapping the column in a function hides it from the index. Range filters on the raw column are sargable." },
+    { q: "The 'grain' of a table means…", opts: ["Its size in MB","What one row represents","Its primary key type","How fast it is"], a: 1, why: "Grain = what one row is. Getting it wrong causes double counting." },
+    { q: "Indexes make writes (INSERT/UPDATE)…", opts: ["Faster","Slower, because the index must be updated too","No different","Impossible"], a: 1, why: "Every index has to be maintained on write. That's the trade-off." }
+  ],
+  challenge: { prompt: "Classic interview question: find the <b>second-highest-paid</b> employee in each department. Columns: <code>dept_id</code>, <code>name</code>, <code>salary</code>. Skip employees with no department.", starter: "WITH ranked AS (\n  SELECT dept_id, name, salary,\n         \n  FROM employees\n  WHERE dept_id IS NOT NULL\n)\nSELECT ", solution: "WITH ranked AS (SELECT dept_id, name, salary, DENSE_RANK() OVER (PARTITION BY dept_id ORDER BY salary DESC) AS rk FROM employees WHERE dept_id IS NOT NULL) SELECT dept_id, name, salary FROM ranked WHERE rk = 2;", ordered: false, hint: "DENSE_RANK() OVER (PARTITION BY dept_id ORDER BY salary DESC), then keep rank 2." }
+}
+);
+
+// ---- rewards for the new chapters ----
+GAMES.find(g => g.id === 5).desc = "60 seconds. True or false? Answer as many as you can!";
+GAMES.push(
+  { id: 6, after: 12, title: "Command Match", kind: "memory", desc: "Match each command to what it does. Fewest flips wins!",
+    pairs: [["INSERT","add rows"],["UPDATE","change rows"],["DELETE","remove rows"],["ROLLBACK","undo transaction"],["CREATE VIEW","saved query"],["CHECK","custom rule"],["DROP","remove table"],["UPSERT","insert or update"]] },
+  { id: 7, after: 14, title: "Date & Text Puzzles", kind: "teaser", desc: "What does each expression return? Type the number.",
+    rounds: [
+      { q: "strftime('%m', '2025-07-04') as a number = ?", a: "7", why: "%m is the month: 07, which is 7." },
+      { q: "julianday('2025-03-10') - julianday('2025-03-01') = ?", a: "9", why: "From the 1st to the 10th is 9 days." },
+      { q: "LENGTH('Lumi Labs') = ?", a: "9", why: "Spaces count: L-u-m-i-space-L-a-b-s." },
+      { q: "INSTR('data@lumi.com', '@') = ?", a: "5", why: "'@' is the 5th character (SQL counts from 1)." },
+      { q: "(CAST(strftime('%m','2025-08-15') AS INTEGER) + 2) / 3 = which quarter?", a: "3", why: "(8 + 2) / 3 = 3 in integer math, so Q3." },
+      { q: "How many rows: SELECT 1 UNION SELECT 1 UNION SELECT 2 ?", a: "2", why: "UNION removes the duplicate 1." }
+    ] },
+  { id: 8, after: 16, title: "Final Boss Blitz", kind: "blitz", desc: "60 seconds of everything. Then claim your certificate!",
+    items: [
+      ["UNION ALL keeps duplicate rows.", true], ["A view stores a copy of the data.", false], ["ROLLBACK undoes changes since BEGIN.", true], ["NOT IN with a NULL in the list can return no rows.", true],
+      ["Indexes make INSERTs faster.", false], ["COUNT(DISTINCT user_id) counts people, not events.", true], ["EXCEPT returns rows in both queries.", false], ["CHECK constraints enforce custom rules.", true],
+      ["Wrapping a column in a function can stop index use.", true], ["A cohort groups users by when they started.", true], ["UPDATE without WHERE changes one row.", false], ["julianday() helps compute days between dates.", true],
+      ["DENSE_RANK leaves gaps after ties.", false], ["3NF removes columns that depend on other non-key columns.", true], ["HAVING filters rows before grouping.", false], ["ETL means Extract, Transform, Load.", true],
+      ["A star schema has a fact table at the center.", true], ["DROP TABLE removes only the rows.", false], ["ON CONFLICT DO UPDATE is an upsert.", true], ["Medians are less sensitive to outliers than averages.", true]
+    ] }
+);
+// ---- roles: map new chapters ----
+ROLES[0].chapters = [1,2,3,4,5,6,7,10,13,14,16]; ROLES[1].chapters = [1,2,3,5,6,8,9,10,15,16];
+ROLES[2].chapters = [1,2,3,4,5,6,7,10,11,14]; ROLES[3].chapters = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16];
+ROLES[1].why = "Funnels, retention cohorts and A/B readouts, without waiting on a data team.";
+
+// ===== SQL Quest Practice Gym: 47 graded problems =====
+// Each answer is graded by comparing your result with the reference solution's result.
+const PROBLEMS = [
+// ---------------- EASY ----------------
+{ id:'E1', diff:'Easy', title:'Recent hires', tags:['filter'], prompt:'List <code>name</code> and <code>hire_date</code> of employees hired on or after <b>2021-01-01</b>.', solution:"SELECT name, hire_date FROM employees WHERE hire_date >= '2021-01-01';", hint:"WHERE hire_date >= '2021-01-01'" },
+{ id:'E2', diff:'Easy', title:'Affordable products', tags:['filter','sort'], prompt:'Show <code>product_name</code> and <code>price</code> of products priced <b>under 200</b>, cheapest first.', solution:"SELECT product_name, price FROM products WHERE price < 200 ORDER BY price;", ordered:true, hint:'WHERE price < 200 ORDER BY price' },
+{ id:'E3', diff:'Easy', title:'Customers per region', tags:['aggregate','NULL'], prompt:'Count customers per region. Show missing regions as <b>Unknown</b>. Columns: <code>region</code>, <code>customers</code>.', solution:"SELECT COALESCE(region, 'Unknown') AS region, COUNT(*) AS customers FROM customers GROUP BY COALESCE(region, 'Unknown');", hint:"COALESCE(region, 'Unknown') then GROUP BY it" },
+{ id:'E4', diff:'Easy', title:'Total revenue', tags:['aggregate'], prompt:'Total amount of <b>completed</b> orders, as <code>revenue</code>.', solution:"SELECT SUM(amount) AS revenue FROM orders WHERE status = 'completed';", hint:"SUM(amount) with WHERE status = 'completed'" },
+{ id:'E5', diff:'Easy', title:'Big pending orders', tags:['filter'], prompt:'<code>order_id</code> and <code>amount</code> of <b>pending</b> orders worth <b>more than 1000</b>.', solution:"SELECT order_id, amount FROM orders WHERE status = 'pending' AND amount > 1000;", hint:'Two conditions joined with AND.' },
+{ id:'E6', diff:'Easy', title:'Missing hire dates', tags:['NULL'], prompt:'Names of employees with <b>no hire date</b> recorded.', solution:"SELECT name FROM employees WHERE hire_date IS NULL;", hint:'IS NULL, not = NULL' },
+{ id:'E7', diff:'Easy', title:'User countries', tags:['distinct'], prompt:'List each distinct <code>country</code> in the users table.', solution:"SELECT DISTINCT country FROM users;", hint:'SELECT DISTINCT' },
+{ id:'E8', diff:'Easy', title:'Top 5 orders', tags:['sort','limit'], prompt:'The 5 largest orders by <code>amount</code> (any status). Show <code>order_id</code>, <code>amount</code>. Break ties by lowest order_id.', solution:"SELECT order_id, amount FROM orders ORDER BY amount DESC, order_id LIMIT 5;", ordered:true, hint:'ORDER BY amount DESC, order_id LIMIT 5' },
+{ id:'E9', diff:'Easy', title:'Average pay by department', tags:['join','aggregate'], prompt:'Average salary per department name, rounded to whole numbers. Columns: <code>dept_name</code>, <code>avg_salary</code>.', solution:"SELECT d.dept_name, ROUND(AVG(e.salary)) AS avg_salary FROM employees e JOIN departments d ON d.dept_id = e.dept_id GROUP BY d.dept_name;", hint:'JOIN departments, GROUP BY dept_name, ROUND(AVG(salary))' },
+{ id:'E10', diff:'Easy', title:'Name patterns', tags:['LIKE'], prompt:'Customers whose name <b>contains "Lab"</b> or <b>ends with "Inc"</b>. Show <code>name</code>.', solution:"SELECT name FROM customers WHERE name LIKE '%Lab%' OR name LIKE '%Inc';", hint:"LIKE '%Lab%' OR LIKE '%Inc'" },
+{ id:'E11', diff:'Easy', title:'Events by platform', tags:['aggregate'], prompt:'Number of events per <code>platform</code>. Columns: <code>platform</code>, <code>events</code>.', solution:"SELECT platform, COUNT(*) AS events FROM events GROUP BY platform;", hint:'GROUP BY platform' },
+{ id:'E12', diff:'Easy', title:'Q1 2025 orders', tags:['dates'], prompt:'How many orders were placed in <b>Q1 2025</b> (Jan 1 to Mar 31)? Column: <code>orders</code>.', solution:"SELECT COUNT(*) AS orders FROM orders WHERE order_date BETWEEN '2025-01-01' AND '2025-03-31';", hint:"BETWEEN '2025-01-01' AND '2025-03-31'" },
+{ id:'E13', diff:'Easy', title:'Pay band', tags:['filter'], prompt:'<code>name</code> and <code>salary</code> of employees earning <b>70,000 to 100,000</b> (inclusive).', solution:"SELECT name, salary FROM employees WHERE salary BETWEEN 70000 AND 100000;", hint:'BETWEEN is inclusive' },
+{ id:'E14', diff:'Easy', title:'Category summary', tags:['aggregate'], prompt:'Per product <code>category</code>: number of <code>products</code> and <code>avg_price</code> (rounded to 2 decimals).', solution:"SELECT category, COUNT(*) AS products, ROUND(AVG(price), 2) AS avg_price FROM products GROUP BY category;", hint:'COUNT(*), ROUND(AVG(price),2), GROUP BY category' },
+// ---------------- MEDIUM ----------------
+{ id:'M1', diff:'Medium', title:'Revenue by product', tags:['join','aggregate'], prompt:'Completed revenue per <code>product_name</code>, highest first. Columns: <code>product_name</code>, <code>revenue</code>.', solution:"SELECT p.product_name, SUM(o.amount) AS revenue FROM orders o JOIN products p ON p.product_id = o.product_id WHERE o.status = 'completed' GROUP BY p.product_name ORDER BY revenue DESC;", ordered:true, hint:'JOIN products, filter completed, GROUP BY product_name, ORDER BY revenue DESC' },
+{ id:'M2', diff:'Medium', title:'Never ordered', tags:['anti-join'], prompt:'Names of customers who have <b>never placed an order</b>.', solution:"SELECT c.name FROM customers c LEFT JOIN orders o ON o.customer_id = c.customer_id WHERE o.order_id IS NULL;", hint:'LEFT JOIN orders … WHERE o.order_id IS NULL' },
+{ id:'M3', diff:'Medium', title:'Rep scorecard', tags:['join','CASE'], prompt:'For each sales rep with orders: <code>name</code>, total <code>orders</code> (any status), and <code>revenue</code> from <b>completed</b> orders only.', solution:"SELECT e.name, COUNT(*) AS orders, SUM(CASE WHEN o.status = 'completed' THEN o.amount ELSE 0 END) AS revenue FROM orders o JOIN employees e ON e.emp_id = o.emp_id GROUP BY e.name;", hint:"SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END)" },
+{ id:'M4', diff:'Medium', title:'Close to the boss', tags:['self-join'], prompt:'Employees earning <b>at least 75%</b> of their manager\'s salary. Columns: <code>employee</code>, <code>manager</code>, <code>pct_of_manager</code> (1 decimal).', solution:"SELECT e.name AS employee, m.name AS manager, ROUND(100.0 * e.salary / m.salary, 1) AS pct_of_manager FROM employees e JOIN employees m ON m.emp_id = e.manager_id WHERE e.salary >= 0.75 * m.salary;", hint:'Self join employees e JOIN employees m ON m.emp_id = e.manager_id' },
+{ id:'M5', diff:'Medium', title:'Running total 2025', tags:['window','dates'], prompt:'Completed revenue per month in <b>2025</b> with a running total. Columns: <code>month</code> (YYYY-MM), <code>revenue</code>, <code>running_total</code>. Sort by month.', solution:"WITH m AS (SELECT strftime('%Y-%m', order_date) AS month, SUM(amount) AS revenue FROM orders WHERE status = 'completed' AND order_date LIKE '2025%' GROUP BY month) SELECT month, revenue, SUM(revenue) OVER (ORDER BY month) AS running_total FROM m ORDER BY month;", ordered:true, hint:'Monthly totals in a CTE, then SUM(revenue) OVER (ORDER BY month)' },
+{ id:'M6', diff:'Medium', title:'Cancellation rate by region', tags:['join','CASE'], prompt:'Percentage of orders that were <b>cancelled</b>, per customer region (rounded to 1 decimal). Columns: <code>region</code>, <code>cancel_pct</code>.', solution:"SELECT c.region, ROUND(100.0 * SUM(CASE WHEN o.status = 'cancelled' THEN 1 ELSE 0 END) / COUNT(*), 1) AS cancel_pct FROM orders o JOIN customers c ON c.customer_id = o.customer_id GROUP BY c.region;", hint:'100.0 * SUM(CASE … cancelled …) / COUNT(*)' },
+{ id:'M7', diff:'Medium', title:'Top earner per department', tags:['window'], prompt:'The highest-paid employee in each department. Columns: <code>dept_name</code>, <code>name</code>, <code>salary</code>.', solution:"WITH r AS (SELECT d.dept_name, e.name, e.salary, ROW_NUMBER() OVER (PARTITION BY e.dept_id ORDER BY e.salary DESC) AS rn FROM employees e JOIN departments d ON d.dept_id = e.dept_id) SELECT dept_name, name, salary FROM r WHERE rn = 1;", hint:'ROW_NUMBER() OVER (PARTITION BY dept_id ORDER BY salary DESC) = 1' },
+{ id:'M8', diff:'Medium', title:'Repeat buys', tags:['duplicates'], prompt:'Customer + product pairs bought <b>more than once</b>. Columns: <code>customer_id</code>, <code>product_id</code>, <code>times</code>.', solution:"SELECT customer_id, product_id, COUNT(*) AS times FROM orders GROUP BY customer_id, product_id HAVING COUNT(*) > 1;", hint:'GROUP BY both columns HAVING COUNT(*) > 1' },
+{ id:'M9', diff:'Medium', title:'Busiest weekday', tags:['dates','sort'], prompt:'Completed orders by weekday number (<code>dow</code>, 0 = Sunday). Columns: <code>dow</code>, <code>orders</code>, most orders first (ties by dow).', solution:"SELECT strftime('%w', order_date) AS dow, COUNT(*) AS orders FROM orders WHERE status = 'completed' GROUP BY dow ORDER BY orders DESC, dow;", ordered:true, hint:"strftime('%w', order_date)" },
+{ id:'M10', diff:'Medium', title:'Signed up, never logged in', tags:['anti-join','events'], prompt:'<code>user_id</code> of users who have a <b>signup</b> event but <b>no login</b> events.', solution:"SELECT DISTINCT user_id FROM events WHERE event_name = 'signup' AND user_id NOT IN (SELECT user_id FROM events WHERE event_name = 'login');", hint:"signup users NOT IN (login users), or use EXCEPT" },
+{ id:'M11', diff:'Medium', title:'Time to purchase', tags:['dates','events'], prompt:'For each purchaser: <code>user_id</code> and <code>days_to_purchase</code> (purchase date minus the user\'s signup_date, as a whole number).', solution:"SELECT e.user_id, CAST(julianday(e.event_date) - julianday(u.signup_date) AS INTEGER) AS days_to_purchase FROM events e JOIN users u ON u.user_id = e.user_id WHERE e.event_name = 'purchase';", hint:'julianday(purchase date) - julianday(signup_date)' },
+{ id:'M12', diff:'Medium', title:'Cross-category buyers', tags:['join','HAVING'], prompt:'Names of customers who bought from <b>both</b> the Software and Services categories.', solution:"SELECT c.name FROM orders o JOIN products p ON p.product_id = o.product_id JOIN customers c ON c.customer_id = o.customer_id GROUP BY c.customer_id, c.name HAVING COUNT(DISTINCT p.category) = 2;", hint:'HAVING COUNT(DISTINCT category) = 2' },
+{ id:'M13', diff:'Medium', title:'Share of revenue', tags:['window','join'], prompt:'Completed revenue by <code>category</code> and its <code>pct</code> of the total (1 decimal). Columns: <code>category</code>, <code>revenue</code>, <code>pct</code>.', solution:"SELECT p.category, SUM(o.amount) AS revenue, ROUND(100.0 * SUM(o.amount) / SUM(SUM(o.amount)) OVER (), 1) AS pct FROM orders o JOIN products p ON p.product_id = o.product_id WHERE o.status = 'completed' GROUP BY p.category;", hint:'SUM(SUM(amount)) OVER () gives the grand total' },
+{ id:'M14', diff:'Medium', title:'Second-highest salary', tags:['subquery'], prompt:'The second-highest distinct salary in the company, as <code>second_salary</code>.', solution:"SELECT MAX(salary) AS second_salary FROM employees WHERE salary < (SELECT MAX(salary) FROM employees);", hint:'MAX(salary) below the overall MAX' },
+{ id:'M15', diff:'Medium', title:'AOV by quarter', tags:['dates','aggregate'], prompt:'Average completed order value per quarter of <b>2025</b>. Columns: <code>quarter</code> (like <code>Q1</code>) and <code>aov</code> (2 decimals), sorted by quarter.', solution:"SELECT 'Q' || ((CAST(strftime('%m', order_date) AS INTEGER) + 2) / 3) AS quarter, ROUND(AVG(amount), 2) AS aov FROM orders WHERE status = 'completed' AND order_date LIKE '2025%' GROUP BY quarter ORDER BY quarter;", ordered:true, hint:"'Q' || ((month + 2) / 3)" },
+{ id:'M16', diff:'Medium', title:'Headcount growth', tags:['window','dates'], prompt:'Hires per year and cumulative headcount (ignore missing hire dates). Columns: <code>hire_year</code>, <code>hires</code>, <code>cumulative</code>. Sort by year.', solution:"SELECT strftime('%Y', hire_date) AS hire_year, COUNT(*) AS hires, SUM(COUNT(*)) OVER (ORDER BY strftime('%Y', hire_date)) AS cumulative FROM employees WHERE hire_date IS NOT NULL GROUP BY hire_year ORDER BY hire_year;", ordered:true, hint:'SUM(COUNT(*)) OVER (ORDER BY year)' },
+// ---------------- HARD ----------------
+{ id:'H1', diff:'Hard', title:'Month-over-month growth', tags:['window','LAG'], prompt:'Completed revenue per month (all data) with the previous month and % change (1 decimal). Columns: <code>month</code>, <code>revenue</code>, <code>prev_revenue</code>, <code>mom_pct</code>. Sort by month.', solution:"WITH m AS (SELECT strftime('%Y-%m', order_date) AS month, SUM(amount) AS revenue FROM orders WHERE status = 'completed' GROUP BY month) SELECT month, revenue, LAG(revenue) OVER (ORDER BY month) AS prev_revenue, ROUND(100.0 * (revenue - LAG(revenue) OVER (ORDER BY month)) / LAG(revenue) OVER (ORDER BY month), 1) AS mom_pct FROM m ORDER BY month;", ordered:true, hint:'LAG(revenue) OVER (ORDER BY month)' },
+{ id:'H2', diff:'Hard', title:'Top 2 per category', tags:['window'], prompt:'The top 2 products by completed revenue within each category. Columns: <code>category</code>, <code>product_name</code>, <code>revenue</code>.', solution:"WITH r AS (SELECT p.category, p.product_name, SUM(o.amount) AS revenue, ROW_NUMBER() OVER (PARTITION BY p.category ORDER BY SUM(o.amount) DESC) AS rn FROM orders o JOIN products p ON p.product_id = o.product_id WHERE o.status = 'completed' GROUP BY p.category, p.product_name) SELECT category, product_name, revenue FROM r WHERE rn <= 2;", hint:'ROW_NUMBER() OVER (PARTITION BY category ORDER BY SUM(amount) DESC) <= 2' },
+{ id:'H3', diff:'Hard', title:'Full funnel', tags:['events','CTE'], prompt:'Funnel for visit → signup → trial_start → purchase. Columns: <code>step</code>, <code>users</code> (distinct), <code>pct_of_visit</code> (1 decimal). Sort by users, highest first.', solution:"WITH f AS (SELECT event_name AS step, COUNT(DISTINCT user_id) AS users FROM events WHERE event_name IN ('visit','signup','trial_start','purchase') GROUP BY event_name) SELECT step, users, ROUND(100.0 * users / (SELECT users FROM f WHERE step = 'visit'), 1) AS pct_of_visit FROM f ORDER BY users DESC;", ordered:true, hint:'COUNT(DISTINCT user_id) per event, divide by the visit count' },
+{ id:'H4', diff:'Hard', title:'Month-1 retention by cohort', tags:['cohort','events'], prompt:'For each signup month (<code>cohort</code>, YYYY-MM from users.signup_date): <code>cohort_size</code>, <code>m1_users</code> (users with a login in the <b>next calendar month</b>), and <code>m1_pct</code> (1 decimal). Sort by cohort.', solution:"WITH c AS (SELECT user_id, strftime('%Y-%m', signup_date) AS cohort, strftime('%Y-%m', date(signup_date, 'start of month', '+1 month')) AS next_m FROM users), r AS (SELECT DISTINCT c.user_id, c.cohort FROM c JOIN events e ON e.user_id = c.user_id AND e.event_name = 'login' AND strftime('%Y-%m', e.event_date) = c.next_m) SELECT c.cohort, COUNT(*) AS cohort_size, COUNT(r.user_id) AS m1_users, ROUND(100.0 * COUNT(r.user_id) / COUNT(*), 1) AS m1_pct FROM c LEFT JOIN r ON r.user_id = c.user_id GROUP BY c.cohort ORDER BY c.cohort;", ordered:true, hint:"next month = date(signup_date,'start of month','+1 month'); LEFT JOIN the retained users" },
+{ id:'H5', diff:'Hard', title:'Longest login streak', tags:['gaps-islands'], prompt:'For users whose longest run of consecutive login days is <b>3 or more</b>: <code>user_id</code>, <code>streak_days</code>. Sort by user_id.', solution:"WITH d AS (SELECT DISTINCT user_id, event_date FROM events WHERE event_name = 'login'), g AS (SELECT user_id, julianday(event_date) - ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY event_date) AS grp FROM d), s AS (SELECT user_id, COUNT(*) AS len FROM g GROUP BY user_id, grp) SELECT user_id, MAX(len) AS streak_days FROM s GROUP BY user_id HAVING MAX(len) >= 3 ORDER BY user_id;", ordered:true, hint:'date − ROW_NUMBER() groups each streak; then MAX per user' },
+{ id:'H6', diff:'Hard', title:'Above-average customers', tags:['CTE','subquery'], prompt:'Customers whose completed spend is above the <b>average completed spend per customer</b>. Columns: <code>name</code>, <code>spend</code>.', solution:"WITH s AS (SELECT customer_id, SUM(amount) AS spend FROM orders WHERE status = 'completed' GROUP BY customer_id) SELECT c.name, s.spend FROM s JOIN customers c ON c.customer_id = s.customer_id WHERE s.spend > (SELECT AVG(spend) FROM s);", hint:'Spend per customer in a CTE, compare to AVG(spend) from the same CTE' },
+{ id:'H7', diff:'Hard', title:'Days to second order', tags:['window','LEAD'], prompt:'For customers with 2+ orders: <code>name</code> and <code>days_between</code> their first and second order (whole number).', solution:"WITH r AS (SELECT customer_id, order_date, ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY order_date, order_id) AS rn, LEAD(order_date) OVER (PARTITION BY customer_id ORDER BY order_date, order_id) AS next_date FROM orders) SELECT c.name, CAST(julianday(r.next_date) - julianday(r.order_date) AS INTEGER) AS days_between FROM r JOIN customers c ON c.customer_id = r.customer_id WHERE r.rn = 1 AND r.next_date IS NOT NULL;", hint:'LEAD(order_date) on the first order (rn = 1)' },
+{ id:'H8', diff:'Hard', title:'Median order', tags:['window'], prompt:'The <b>median</b> completed order amount, as <code>median_amount</code>.', solution:"WITH r AS (SELECT amount, ROW_NUMBER() OVER (ORDER BY amount) AS rn, COUNT(*) OVER () AS n FROM orders WHERE status = 'completed') SELECT AVG(amount) AS median_amount FROM r WHERE rn IN ((n + 1) / 2, (n + 2) / 2);", hint:'ROW_NUMBER and COUNT(*) OVER (), keep the middle one or two rows' },
+{ id:'H9', diff:'Hard', title:'3-month moving average', tags:['window'], prompt:'Completed revenue per month (all data) and the average of that month and the 2 before it (1 decimal). Columns: <code>month</code>, <code>revenue</code>, <code>avg_3m</code>. Sort by month.', solution:"WITH m AS (SELECT strftime('%Y-%m', order_date) AS month, SUM(amount) AS revenue FROM orders WHERE status = 'completed' GROUP BY month) SELECT month, revenue, ROUND(AVG(revenue) OVER (ORDER BY month ROWS BETWEEN 2 PRECEDING AND CURRENT ROW), 1) AS avg_3m FROM m ORDER BY month;", ordered:true, hint:'AVG(...) OVER (ORDER BY month ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)' },
+{ id:'H10', diff:'Hard', title:'Yearly rep ranking', tags:['window','dates'], prompt:'Rank reps by completed revenue <b>within each year</b>. Columns: <code>year</code>, <code>name</code>, <code>revenue</code>, <code>rnk</code> (RANK). Sort by year, then rnk.', solution:"SELECT strftime('%Y', o.order_date) AS year, e.name, SUM(o.amount) AS revenue, RANK() OVER (PARTITION BY strftime('%Y', o.order_date) ORDER BY SUM(o.amount) DESC) AS rnk FROM orders o JOIN employees e ON e.emp_id = o.emp_id WHERE o.status = 'completed' GROUP BY year, e.name ORDER BY year, rnk;", ordered:true, hint:'RANK() OVER (PARTITION BY year ORDER BY SUM(amount) DESC)' },
+{ id:'H11', diff:'Hard', title:'Org chart levels', tags:['recursive'], prompt:'Every employee with their <code>level</code> in the org chart (the CEO with no manager = 1). Columns: <code>name</code>, <code>level</code>.', solution:"WITH RECURSIVE t AS (SELECT emp_id, name, 1 AS level FROM employees WHERE manager_id IS NULL UNION ALL SELECT e.emp_id, e.name, t.level + 1 FROM employees e JOIN t ON e.manager_id = t.emp_id) SELECT name, level FROM t;", hint:'WITH RECURSIVE: start at manager_id IS NULL, join children to parents' },
+{ id:'H12', diff:'Hard', title:'Pareto 80%', tags:['window'], prompt:'Customers ranked by completed spend, with cumulative % of total (1 decimal). Return only rows up to and including the one that crosses <b>80%</b>. Columns: <code>name</code>, <code>spend</code>, <code>cum_pct</code>, highest spend first.', solution:"WITH s AS (SELECT c.name, SUM(o.amount) AS spend FROM orders o JOIN customers c ON c.customer_id = o.customer_id WHERE o.status = 'completed' GROUP BY c.name), r AS (SELECT name, spend, 100.0 * SUM(spend) OVER (ORDER BY spend DESC, name ROWS UNBOUNDED PRECEDING) / SUM(spend) OVER () AS cum, 100.0 * (SUM(spend) OVER (ORDER BY spend DESC, name ROWS UNBOUNDED PRECEDING) - spend) / SUM(spend) OVER () AS prev FROM s) SELECT name, spend, ROUND(cum, 1) AS cum_pct FROM r WHERE prev < 80 ORDER BY spend DESC, name;", ordered:true, hint:'Running SUM over spend DESC; keep rows whose previous cumulative % was under 80' },
+// ---------------- CASE STUDY ----------------
+{ id:'C1', diff:'Case study', title:'QBR 1: Headline numbers', tags:['case'], prompt:'<b>Lumi Labs quarterly business review.</b> The CEO wants completed <code>orders</code> and <code>revenue</code> per <code>year</code>. Sort by year.', solution:"SELECT strftime('%Y', order_date) AS year, COUNT(*) AS orders, SUM(amount) AS revenue FROM orders WHERE status = 'completed' GROUP BY year ORDER BY year;", ordered:true, hint:"GROUP BY strftime('%Y', order_date)" },
+{ id:'C2', diff:'Case study', title:'QBR 2: Winning category', tags:['case'], prompt:'Which product <code>category</code> earned the most completed <code>revenue</code> in <b>2025</b>? Return just that one row.', solution:"SELECT p.category, SUM(o.amount) AS revenue FROM orders o JOIN products p ON p.product_id = o.product_id WHERE o.status = 'completed' AND o.order_date LIKE '2025%' GROUP BY p.category ORDER BY revenue DESC LIMIT 1;", ordered:true, hint:'GROUP BY category ORDER BY revenue DESC LIMIT 1' },
+{ id:'C3', diff:'Case study', title:'QBR 3: Regional momentum', tags:['case'], prompt:'Completed revenue per customer <code>region</code> for <code>h1</code> (Jan to Jun 2025) and <code>h2</code> (Jul to Dec 2025), plus <code>growth_pct</code> = (h2 − h1) / h1 × 100 (1 decimal). Regions with no H1 revenue: show NULL growth.', solution:"WITH x AS (SELECT c.region, SUM(CASE WHEN o.order_date BETWEEN '2025-01-01' AND '2025-06-30' THEN o.amount ELSE 0 END) AS h1, SUM(CASE WHEN o.order_date BETWEEN '2025-07-01' AND '2025-12-31' THEN o.amount ELSE 0 END) AS h2 FROM orders o JOIN customers c ON c.customer_id = o.customer_id WHERE o.status = 'completed' GROUP BY c.region) SELECT region, h1, h2, ROUND(100.0 * (h2 - h1) / NULLIF(h1, 0), 1) AS growth_pct FROM x;", hint:'Conditional SUMs for each half, then NULLIF(h1, 0) to avoid divide-by-zero' },
+{ id:'C4', diff:'Case study', title:'QBR 4: Rep leaderboard', tags:['case'], prompt:'Each rep\'s completed <code>revenue</code> and <code>pct_of_total</code> (1 decimal), highest first. Columns: <code>name</code>, <code>revenue</code>, <code>pct_of_total</code>.', solution:"SELECT e.name, SUM(o.amount) AS revenue, ROUND(100.0 * SUM(o.amount) / SUM(SUM(o.amount)) OVER (), 1) AS pct_of_total FROM orders o JOIN employees e ON e.emp_id = o.emp_id WHERE o.status = 'completed' GROUP BY e.name ORDER BY revenue DESC;", ordered:true, hint:'SUM(SUM(amount)) OVER () for the total' },
+{ id:'C5', diff:'Case study', title:'QBR 5: Marketing ROI', tags:['case','events'], prompt:'Which acquisition <code>channel</code> has the best signup → purchase conversion? Return <code>channel</code> and <code>conversion_pct</code> (1 decimal) for the single best channel. Then ask yourself: is it trustworthy? Check how many signups that channel had.', solution:"WITH x AS (SELECT u.channel, COUNT(DISTINCT CASE WHEN e.event_name = 'purchase' THEN e.user_id END) * 100.0 / COUNT(DISTINCT CASE WHEN e.event_name = 'signup' THEN e.user_id END) AS conv FROM users u JOIN events e ON e.user_id = u.user_id GROUP BY u.channel) SELECT channel, ROUND(conv, 1) AS conversion_pct FROM x ORDER BY conv DESC LIMIT 1;", ordered:true, hint:'Conversion per channel in a CTE, then ORDER BY … DESC LIMIT 1' }
+];
+const DIFF_GEMS = { 'Easy':20, 'Medium':40, 'Hard':60, 'Case study':60 };
 </script>
 <script>// ===== SQL Quest app =====
 (function(){
@@ -767,14 +1193,15 @@ const $ = (s, el=document) => el.querySelector(s);
 const $$ = (s, el=document) => [...el.querySelectorAll(s)];
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const KEY = 'sqlquest-v1';
-const LEVELS = [[0,"Data Sprout"],[2,"Query Cadet"],[4,"Filter Ranger"],[6,"Join Knight"],[8,"Window Wizard"],[10,"SQL Sage"]];
+const LEVELS = [[0,"Data Sprout"],[2,"Query Cadet"],[4,"Filter Ranger"],[6,"Join Knight"],[9,"Window Wizard"],[12,"Data Architect"],[14,"Analytics Ace"],[16,"SQL Sage"]];
 const PASTELS = ['#ffb8cf','#c6e3ff','#bfeedd','#e1d4ff','#fff1b8','#ffd8c2','#b9a2ff','#7fd8b8','#ff9fc6'];
 
 // ---------- state ----------
-let S = { name:"", gems:0, done:{}, quiz:{}, solved:{}, games:{}, tries:{} };
+let S = { name:"", gems:0, done:{}, quiz:{}, solved:{}, games:{}, tries:{}, gym:{}, mock:null };
 function load(){ try{ const t = localStorage.getItem(KEY); if(t) S = Object.assign(S, JSON.parse(t)); }catch(e){} }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} updateTop(); }
-load();
+load(); S.gym = S.gym || {};
+const NCH = CHAPTERS.length, LASTG = GAMES[GAMES.length-1];
 const doneCount = () => CHAPTERS.filter(c => S.done[c.id]).length;
 const level = () => { let n = doneCount(), l = LEVELS[0][1]; LEVELS.forEach(([k,v]) => { if(n >= k) l = v; }); return l; };
 const chUnlocked = id => id === 1 || !!S.done[id-1];
@@ -861,15 +1288,103 @@ function friendly(msg){
   if(m.includes('no such column')) return "That column doesn't exist in this table. Peek at the Schema list, or check your table alias.";
   if(m.includes('syntax error')) return "Small typo somewhere near the word shown. Check commas, quotes and keyword order.";
   if(m.includes('ambiguous')) return "Two tables share that column name. Prefix it with the table alias, like o.amount.";
+  if(m.includes('constraint failed')) return "The table's rules (constraints) rejected this row. That's them doing their job! Read which rule failed.";
+  if(m.includes('already exists')) return "You already created this in the playground. Use 'IF NOT EXISTS', or click ↺ Reset data.";
+  if(m.includes('duplicate column')) return "That column was already added. Click ↺ Reset data to start fresh.";
   if(m.includes('misuse of aggregate')) return "Aggregates like SUM() belong in SELECT or HAVING, not WHERE.";
   return "Lumi is scratching her head. Read the message and try again!";
 }
-function renderResult(el, sql){
-  if(!db){ el.innerHTML = '<div class="meta">Loading the SQL engine… one moment ✨</div>'; dbReady.then(() => renderResult(el, sql)); return null; }
+// ---------- Before → After visualiser ----------
+const GCOL = ['#ffd6e0','#d6ecff','#d9f7e6','#fff1c9','#efe1ff','#ffe0cc','#d6f5f5','#ffe6f2','#e6f0ff','#f0f7d4'];
+const stripComments = s => s.replace(/--[^\n]*/g, ' ').replace(/\/\*[\s\S]*?\*\//g, ' ');
+function knownTables(){ try{ const r = db.exec("SELECT name, type FROM sqlite_master WHERE type IN ('table','view') AND name NOT LIKE 'sqlite_%'"); return r.length ? r[0].values.map(v => ({name:v[0], view:v[1] === 'view'})) : []; }catch(e){ return []; } }
+function snapshot(t){ try{ return runOn(db, t.view ? `SELECT * FROM "${t.name}"` : `SELECT rowid AS __rid, * FROM "${t.name}"`); }catch(e){ return null; } }
+function splitTop(s, sep){ const out = []; let d = 0, cur = '', q = false; for(const ch of s){ if(ch === "'") q = !q; if(!q){ if(ch === '(') d++; if(ch === ')') d--; } if(ch === sep && d === 0 && !q){ out.push(cur); cur = ''; } else cur += ch; } out.push(cur); return out.map(x => x.trim()).filter(Boolean); }
+// find the index of a top-level keyword (not inside parentheses or quotes)
+function topIdx(s, re){ let d = 0, q = false; for(let i = 0; i < s.length; i++){ const ch = s[i]; if(ch === "'") q = !q; if(q) continue; if(ch === '(') d++; else if(ch === ')') d--; else if(d === 0){ re.lastIndex = 0; const m = re.exec(s.slice(i)); if(m && m.index === 0 && (i === 0 || /[\s(]/.test(s[i-1]))) return i; } } return -1; }
+function cellHTML(x){ return x === null ? '<td class="null">NULL</td>' : `<td>${esc(typeof x === 'number' && !Number.isInteger(x) ? +x.toFixed(4) : x)}</td>`; }
+function beforeTable(snap, opts = {}){
+  const ri = snap.columns.indexOf('__rid'); const cols = snap.columns.filter(c => c !== '__rid');
+  const rows = snap.values.slice(0, 120).map(v => { const rid = ri >= 0 ? v[ri] : null; const vals = v.filter((_, i) => i !== ri);
+    let cls = '', style = ''; if(opts.groups){ if(opts.groups.has(rid)) style = `background:${opts.gcolor(opts.groups.get(rid))}`; else cls = 'dropped'; } else if(opts.kept){ cls = opts.kept.has(rid) ? 'kept' : 'dropped'; }
+    if(opts.deleted && opts.deleted.has(rid)) cls = 'deleted'; if(opts.added && opts.added.has(rid)) cls = 'added';
+    return `<tr class="${cls}" style="${style}">${vals.map((x, j) => { const ch = opts.changed && opts.changed.has(rid + ':' + cols[j]); const h = ch ? cellHTML(x).replace('<td', '<td class="chg"') : cellHTML(x); return style ? h.replace('<td', `<td style="${style}"`) : h; }).join('')}</tr>`; }).join('');
+  const used = opts.usedCols || new Set();
+  return `<div class="tblwrap"><table class="res"><tr>${cols.map(c => `<th class="${used.has(c.toLowerCase()) ? 'usedcol' : ''}">${esc(c)}</th>`).join('')}</tr>${rows}</table></div>${snap.values.length > 120 ? `<div class="meta">Showing 120 of ${snap.values.length} rows</div>` : ''}`;
+}
+function afterTable(r, rowColor){
+  const rows = r.values.slice(0, 200).map(v => { const st = rowColor ? rowColor(v) : ''; return `<tr>${v.map(x => st ? cellHTML(x).replace('<td', `<td style="${st}"`) : cellHTML(x)).join('')}</tr>`; }).join('');
+  return `<div class="tblwrap"><table class="res"><tr>${r.columns.map(c => `<th>${esc(c)}</th>`).join('')}</tr>${rows}</table></div>`;
+}
+function compareView(sql, r, ms){
+  const clean = stripComments(sql).trim().replace(/;\s*$/, ''); const first = splitTop(clean, ';')[0] || '';
+  const T = knownTables(); const names = new Set(T.map(t => t.name.toLowerCase()));
+  const refs = [...new Set([...first.matchAll(/\b(?:FROM|JOIN)\s+"?([A-Za-z_][\w]*)"?/gi)].map(m => m[1].toLowerCase()).filter(n => names.has(n)))];
+  if(!refs.length || !/^\s*(WITH|SELECT)\b/i.test(first) || /\bsqlite_master\b|EXPLAIN/i.test(first)) return null;
+  const tables = refs.map(n => T.find(t => t.name.toLowerCase() === n));
+  const notes = []; let opts = {}, rowColor = null;
+  const single = tables.length === 1 && !/\bJOIN\b|\bUNION\b|\bINTERSECT\b|\bEXCEPT\b|^\s*WITH\b/i.test(first) && !tables[0].view;
+  const fromI = topIdx(first, /FROM\s/i), groupI = topIdx(first, /GROUP\s+BY\s/i);
+  const selectList = fromI > 0 ? first.slice(first.search(/SELECT\s/i) + 6, fromI).replace(/^\s*DISTINCT\s+/i, '') : '';
+  const hasAgg = /\b(COUNT|SUM|AVG|MIN|MAX|GROUP_CONCAT|TOTAL)\s*\(/i.test(selectList) && !/\bOVER\s*\(/i.test(selectList);
+  const snap0 = snapshot(tables[0]);
+  if(snap0){ const total = snap0.values.length; const words = new Set((first.toLowerCase().match(/[a-z_]+/g) || [])); opts.usedCols = new Set(snap0.columns.filter(c => c !== '__rid' && words.has(c.toLowerCase())).map(c => c.toLowerCase()));
+    if(single && fromI > 0){
+      const tail = first.slice(fromI);
+      if(groupI < 0 && !hasAgg){
+        // which source rows survive WHERE / LIMIT?
+        let kept = null; try{ const q = runOn(db, 'SELECT rowid AS __rid, ' + selectList + ' ' + tail); kept = new Set(q ? q.values.map(v => v[0]) : []); }catch(e0){ try{ const q = runOn(db, 'SELECT rowid AS __rid ' + tail); kept = new Set(q ? q.values.map(v => v[0]) : []); }catch(e){
+          try{ const cut = topIdx(tail, /ORDER\s+BY\s|LIMIT\s/i); const q = runOn(db, 'SELECT rowid AS __rid ' + (cut > 0 ? tail.slice(0, cut) : tail)); kept = new Set(q ? q.values.map(v => v[0]) : []); }catch(e2){} } }
+        if(kept){ opts.kept = kept; if(/\bWHERE\b/i.test(tail)) notes.push(`<b>WHERE</b> kept <b>${kept.size}</b> of ${total} rows`); else if(/\bLIMIT\b/i.test(tail)) notes.push(`<b>LIMIT</b> kept <b>${kept.size}</b> of ${total} rows`); else notes.push(`all <b>${total}</b> rows kept`); }
+        if(/^\s*SELECT\s+DISTINCT/i.test(first)) notes.push(`<b>DISTINCT</b> removed duplicates → <b>${r.values.length}</b> rows`);
+        if(/\bORDER\s+BY\b/i.test(tail)) notes.push(`<b>ORDER BY</b> re-sorted them`);
+      } else if(groupI > 0){
+        const gtxt = first.slice(groupI).replace(/^GROUP\s+BY\s+/i, ''); const end = topIdx(gtxt, /HAVING\s|ORDER\s+BY\s|LIMIT\s/i); const keys = splitTop(end > 0 ? gtxt.slice(0, end) : gtxt, ',');
+        const fromPart = first.slice(fromI, groupI);
+        try{ const q = runOn(db, `SELECT rowid AS __rid, ${keys.map(k => `COALESCE(CAST((${k}) AS TEXT), 'NULL')`).join(" || ' · ' || ")} AS __g ${fromPart}`);
+          const groups = new Map(q ? q.values.map(v => [v[0], v[1]]) : []); const keyList = [...new Set(groups.values())]; const gcolor = k => GCOL[keyList.indexOf(k) % GCOL.length];
+          opts.groups = groups; opts.gcolor = gcolor; opts.kept = new Set(groups.keys());
+          notes.push(`<b>GROUP BY</b> sorted ${groups.size} rows into <b>${keyList.length}</b> coloured groups → 1 result row each`);
+          if(/\bWHERE\b/i.test(fromPart) && groups.size < total) notes.push(`<b>WHERE</b> first kept ${groups.size} of ${total} rows`);
+          if(/\bHAVING\b/i.test(gtxt) && r.values.length < keyList.length) notes.push(`<b>HAVING</b> then dropped ${keyList.length - r.values.length} group(s)`);
+          if(keys.length === 1) rowColor = v => { const hit = v.find(x => keyList.includes(x === null ? 'NULL' : String(x))); return hit !== undefined ? `background:${gcolor(hit === null ? 'NULL' : String(hit))}` : ''; };
+        }catch(e){}
+      } else if(hasAgg){ notes.push(`an <b>aggregate</b> squashed ${total} rows into <b>${r.values.length}</b>`); }
+    } else if(tables.length > 1){ notes.push(`<b>JOIN</b> matched rows from <b>${tables.map(t => t.name).join(' + ')}</b> using the ON condition`); }
+    else if(/^\s*WITH\b/i.test(first)) notes.push('<b>CTE</b>: built step by step from the source table');
+    if(single && groupI < 0 && !hasAgg && r.columns.length < snap0.columns.length - 1) notes.push(`<b>SELECT</b> picked <b>${r.columns.length}</b> of ${snap0.columns.length - 1} columns`);
+  }
+  const tabs = tables.map((t, i) => `<button class="btab ${i ? '' : 'on'}" data-i="${i}">${esc(t.name)}</button>`).join('');
+  const panes = tables.map((t, i) => { const s = i === 0 ? snap0 : snapshot(t); return `<div class="bpane" data-i="${i}" ${i ? 'hidden' : ''}>${s ? beforeTable(s, i === 0 ? opts : {}) : ''}</div>`; }).join('');
+  return `<div class="result cmp"><div class="cmp-notes">${notes.length ? '🔎 ' + notes.join(' · ') : '🔎 Compare the source table with your result.'}</div>
+    <div class="cmp-grid"><div class="cmp-side"><div class="cmp-h">BEFORE · source table${tables.length > 1 ? 's' : ''} ${tables.length > 1 ? tabs : `<span class="tname">${esc(tables[0].name)} (${snap0 ? snap0.values.length : '?'} rows)</span>`}</div>${panes}
+      ${opts.kept && !opts.groups ? '<div class="legend"><span class="lk"></span> kept <span class="ld"></span> filtered out <span class="lu"></span> column your query uses</div>' : opts.groups ? '<div class="legend">Same colour = same group · faded = filtered out · <span class="lu"></span> column your query uses</div>' : ''}</div>
+    <div class="cmp-arrow">⬇ your query ⬇</div><div class="cmp-side"><div class="cmp-h">AFTER · your result <span class="tname">${r.values.length} row${r.values.length === 1 ? '' : 's'} · ${ms} ms</span></div>${afterTable(r, rowColor)}</div></div></div>`;
+}
+function dmlView(sql, el){
+  const clean = stripComments(sql).trim(); const m = /^\s*(INSERT\s+(?:OR\s+\w+\s+)?INTO|UPDATE|DELETE\s+FROM)\s+"?([A-Za-z_]\w*)"?/i.exec(clean); if(!m) return false;
+  const t = knownTables().find(x => x.name.toLowerCase() === m[2].toLowerCase() && !x.view); if(!t) return false;
+  const before = snapshot(t); const t0 = performance.now(); const res = db.exec(sql); const ms = (performance.now() - t0).toFixed(1); const after = snapshot(t);
+  const bm = new Map(before.values.map(v => [v[0], v])), am = new Map(after.values.map(v => [v[0], v])); const cols = before.columns;
+  const deleted = new Set([...bm.keys()].filter(k => !am.has(k))), added = new Set([...am.keys()].filter(k => !bm.has(k))), changed = new Set(); let nChanged = 0;
+  for(const [k, v] of am){ const b = bm.get(k); if(!b) continue; let any = false; cols.forEach((c, i) => { if(i && b[i] !== v[i]){ changed.add(k + ':' + c); any = true; } }); if(any) nChanged++; }
+  const verb = m[1].split(/\s+/)[0].toUpperCase(); const notes = [];
+  if(added.size) notes.push(`<b>${verb}</b> added <b>${added.size}</b> row${added.size > 1 ? 's' : ''} (green)`); if(nChanged) notes.push(`<b>${verb}</b> changed <b>${nChanged}</b> row${nChanged > 1 ? 's' : ''} (yellow cells)`); if(deleted.size) notes.push(`<b>${verb}</b> removed <b>${deleted.size}</b> row${deleted.size > 1 ? 's' : ''} (red)`);
+  if(!notes.length) notes.push('No rows changed. Check your WHERE condition (or a ROLLBACK undid it).');
+  const last = res.length ? res[res.length - 1] : null;
+  el.innerHTML = `<div class="result cmp"><div class="cmp-notes">✏️ ${notes.join(' · ')} · ${ms} ms</div><div class="cmp-grid"><div class="cmp-side"><div class="cmp-h">BEFORE <span class="tname">${esc(t.name)} (${before.values.length} rows)</span></div>${beforeTable(before, {deleted, changed})}</div><div class="cmp-arrow">⬇ your query ⬇</div><div class="cmp-side"><div class="cmp-h">AFTER <span class="tname">${esc(t.name)} (${after.values.length} rows)</span></div>${beforeTable(after, {added, changed})}</div></div>
+    ${last ? `<div class="cmp-h" style="margin-top:10px">Query result <span class="tname">${last.values.length} rows</span></div>${afterTable(last)}` : ''}<div class="meta">Changes stay in the playground. Click ↺ Reset data to restore the original tables.</div></div>`;
+  return true;
+}
+function renderResult(el, sql, plain){
+  if(!db){ el.innerHTML = '<div class="meta">Loading the SQL engine… one moment ✨</div>'; dbReady.then(() => renderResult(el, sql, plain)); return null; }
   try{
+    if(!plain && dmlView(sql, el)) return {columns:[], values:[]};
     const t0 = performance.now(); const r = runOn(db, sql); const ms = (performance.now()-t0).toFixed(1);
     if(!r){ el.innerHTML = `<div class="result"><div class="meta">✅ Ran fine, but no rows came back (${ms} ms).</div></div>`; return {columns:[],values:[]}; }
-    el.innerHTML = `<div class="result"><div class="meta">✨ ${r.values.length} row${r.values.length===1?'':'s'} · ${ms} ms</div>${table(r)}</div>`;
+    let cmp = null; if(!plain && S.compare !== false){ try{ cmp = compareView(sql, r, ms); }catch(e){ cmp = null; } }
+    el.innerHTML = cmp || `<div class="result"><div class="meta">✨ ${r.values.length} row${r.values.length===1?'':'s'} · ${ms} ms</div>${table(r)}</div>`;
+    $$('.btab', el).forEach(b => b.onclick = () => { $$('.btab', el).forEach(x => x.classList.toggle('on', x === b)); $$('.bpane', el).forEach(p => p.hidden = p.dataset.i !== b.dataset.i); });
     return r;
   }catch(e){ el.innerHTML = `<div class="result err">🙈 ${esc(e.message)}<br><span style="font-weight:600">Lumi's hint: ${friendly(e.message)}</span></div>`; return null; }
 }
@@ -884,13 +1399,15 @@ function norm(r, ordered){
   return { cols: r.columns.length, rows };
 }
 function checkAnswer(userSql, ch){
-  const d1 = freshDb(), d2 = freshDb();
+  const C = ch.challenge || ch; const d1 = freshDb(), d2 = freshDb();
   try{
-    const u = norm(runOn(d1, userSql), ch.challenge.ordered), s = norm(runOn(d2, ch.challenge.solution), ch.challenge.ordered);
+    let u, s;
+    if(C.verify){ d1.exec(userSql); d2.exec(C.solution); u = norm(runOn(d1, C.verify), C.ordered); s = norm(runOn(d2, C.verify), C.ordered); }
+    else { u = norm(runOn(d1, userSql), C.ordered); s = norm(runOn(d2, C.solution), C.ordered); }
     if(!u) return { ok:false, msg:"Your query didn't return any rows yet." };
     if(u.cols !== s.cols) return { ok:false, msg:`Expected ${s.cols} column${s.cols>1?'s':''}, you returned ${u.cols}. Check which columns you SELECT.` };
     if(u.rows.length !== s.rows.length) return { ok:false, msg:`Expected ${s.rows.length} rows, you returned ${u.rows.length}. Check your filters or grouping.` };
-    if(u.rows.join() !== s.rows.join()) return { ok:false, msg: ch.challenge.ordered ? "Right size, but some values or the order differ. Check sorting and calculations." : "Right size, but some values differ. Check calculations and column order." };
+    if(u.rows.join() !== s.rows.join()) return { ok:false, msg: C.ordered ? "Right size, but some values or the order differ. Check sorting and calculations." : "Right size, but some values differ. Check calculations and column order." };
     return { ok:true };
   }catch(e){ return { ok:false, msg: esc(e.message) + ' — ' + friendly(e.message) }; }
   finally{ d1.close(); d2.close(); }
@@ -939,13 +1456,14 @@ function schemaHTML(){
 function playground(starter){
   return `<div class="card reveal"><h2 style="margin:0 0 4px">🧪 Playground</h2><p style="margin:0 0 10px;color:var(--muted)">Experiment freely. Nothing you do here can break the lesson data permanently.</p>
   <div class="play"><div><textarea class="editor" id="pgEditor" spellcheck="false">${esc(starter)}</textarea>
-  <div class="row"><button class="btn mint small" id="pgRun">▶ Run</button><button class="btn ghost small" id="pgReset">↺ Reset data</button><span class="kbd">Ctrl / ⌘ + Enter to run</span></div><div id="pgOut"></div></div>${schemaHTML()}</div></div>`;
+  <div class="row"><button class="btn mint small" id="pgRun">▶ Run</button><button class="btn ghost small" id="pgReset">↺ Reset data</button><label class="kbd cmptoggle"><input type="checkbox" id="cmpT" ${S.compare === false ? '' : 'checked'}> 🔎 Before → After view</label><span class="kbd">Ctrl / ⌘ + Enter to run</span></div><div id="pgOut"></div></div>${schemaHTML()}</div></div>`;
 }
 function wirePlayground(){
   const ed = $('#pgEditor'); if(!ed) return;
   const run = () => renderResult($('#pgOut'), ed.value);
   $('#pgRun').onclick = run;
   ed.addEventListener('keydown', e => { if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ e.preventDefault(); run(); } });
+  const ct = $('#cmpT'); if(ct) ct.onchange = () => { S.compare = ct.checked; save(); toast(ct.checked ? 'Before → After view on 🔎' : 'Showing results only'); };
   $('#pgReset').onclick = () => { if(db){ db.close(); db = freshDb(); toast('Fresh data restored ✨'); } };
 }
 
@@ -953,7 +1471,7 @@ function wirePlayground(){
 function viewHome(){
   const next = CHAPTERS.find(c => !S.done[c.id]);
   const seq = []; CHAPTERS.forEach(c => { seq.push({t:'c', c}); const g = GAMES.find(g => g.after === c.id); if(g) seq.push({t:'g', g}); });
-  const xs = [100,290,480,670,880], ys = [90,320,550];
+  const xs = [100,290,480,670,880], nrows = Math.ceil(seq.length / 5), ys = Array.from({length:nrows}, (_, r) => 90 + r*230), mapH = 90 + (nrows-1)*230 + 90;
   const pts = seq.map((s, i) => { const r = Math.floor(i/5), k = i % 5; return [r % 2 ? xs[4-k] : xs[k], ys[r]]; });
   let d = `M${pts[0][0]} ${pts[0][1]}`; for(let i=1;i<pts.length;i++){ const [x0,y0] = pts[i-1], [x1,y1] = pts[i]; d += y0 === y1 ? ` L${x1} ${y1}` : ` C${x0 + (x0 > 500 ? 110 : -110)} ${y0} ${x1 + (x1 > 500 ? 110 : -110)} ${y1} ${x1} ${y1}`; }
   const nodes = seq.map((s, i) => {
@@ -967,16 +1485,16 @@ function viewHome(){
   return `<section class="view">
   <div class="hero"><span class="sparkle" style="top:18px;left:46%">✦</span><span class="sparkle" style="bottom:30px;left:8%;animation-delay:.8s">✧</span><span class="sparkle" style="top:40%;right:6%;animation-delay:1.4s">✦</span>
     <div><div class="kicker" style="font-weight:800;color:#8a6fd1;letter-spacing:1.5px">${hi}</div><h1>SQL Quest<br><span style="font-size:30px;color:#7a5cff">with Lumi the axolotl</span></h1>
-    <p>Learn SQL from absolute zero to interview-ready in 10 bite-size chapters. Run real queries in your browser, earn gems and badges, and unlock a brain game every 2 chapters.</p>
-    <div class="row"><a class="btn" href="#ch-${next ? next.id : 10}" style="text-decoration:none">${doneCount() ? 'Continue quest →' : 'Start chapter 1 →'}</a><a class="btn ghost" href="#cheatsheet" style="text-decoration:none">📜 Cheat sheet</a></div></div>
+    <p>Learn SQL from absolute zero to interview-ready: ${NCH} chapters, ${PROBLEMS.length} practice problems and a timed mock interview. Run real queries in your browser, earn gems and badges, and unlock a brain game every 2 chapters.</p>
+    <div class="row"><a class="btn" href="${next ? '#ch-' + next.id : '#gym'}" style="text-decoration:none">${doneCount() ? 'Continue quest →' : 'Start chapter 1 →'}</a><a class="btn mint" href="#gym" style="text-decoration:none">🏋️ Practice Gym</a><a class="btn ghost" href="#cheatsheet" style="text-decoration:none">📜 Cheat sheet</a></div></div>
     <div class="lumi-wrap">${lumiSVG()}</div></div>
   <div class="statgrid">
-    <div class="stat"><div class="n">${doneCount()}/10</div><div class="l">Chapters done</div></div>
+    <div class="stat"><div class="n">${doneCount()}/${NCH}</div><div class="l">Chapters done</div></div>
     <div class="stat"><div class="n">💎 ${S.gems}</div><div class="l">Gems earned</div></div>
-    <div class="stat"><div class="n">${GAMES.filter(g => S.games[g.id]).length}/5</div><div class="l">Games won</div></div>
+    <div class="stat"><div class="n">${Object.keys(S.gym).length}/${PROBLEMS.length}</div><div class="l">Gym problems solved</div></div>
     <div class="stat"><div class="n" style="font-size:24px">${level()}</div><div class="l">Your rank</div></div></div>
   <div class="card reveal"><h2 style="margin:0">🗺️ Your quest map</h2><p style="color:var(--muted);margin:4px 0 0">Finish chapters in order. Every 2 chapters, a treasure chest opens with a reward game.</p>
-    <div class="map"><svg class="path" viewBox="0 0 1000 640" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="#e3d8fb" stroke-width="16" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#fff" stroke-width="4" stroke-dasharray="2 14" stroke-linecap="round"/></svg>${nodes}</div></div>
+    <div class="map" style="height:${mapH}px"><svg class="path" viewBox="0 0 1000 ${mapH}" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="#e3d8fb" stroke-width="16" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#fff" stroke-width="4" stroke-dasharray="2 14" stroke-linecap="round"/></svg>${nodes}</div></div>
   <div class="card reveal"><h2 style="margin:0 0 4px">🎯 Built for the roles you're targeting</h2><p style="color:var(--muted);margin:0 0 14px">Each role leans on different chapters. Outlined chips are chapters you've finished.</p>
     <div class="roles">${ROLES.map(r => `<div class="role" style="background:${r.color}"><h3>${r.name}</h3><p>${r.why}</p><div class="chips">${r.chapters.map(n => `<span class="${S.done[n]?'ok':''}">Ch ${n}</span>`).join('')}</div></div>`).join('')}</div></div>
   <div class="card reveal"><h2 style="margin:0 0 8px">🏅 Badge shelf</h2><div style="display:flex;flex-wrap:wrap;gap:10px">${CHAPTERS.map(c => `<div title="${esc(c.title)}" style="width:76px;opacity:${S.done[c.id]?1:.18};filter:${S.done[c.id]?'none':'grayscale(1)'}">${badge(c).replace('class="badge"','style="width:76px;height:76px"')}</div>`).join('')}</div></div>
@@ -989,7 +1507,7 @@ function viewChapter(id){
   const steps = `<div class="steps"><span class="ok">📖 Lesson</span><span class="${qOk?'ok':''}">${qOk?'✅':'❓'} Quiz</span><span class="${sOk?'ok':''}">${sOk?'✅':'🧩'} Challenge</span><span class="${S.done[id]?'ok':''}">${S.done[id]?'⭐ Complete':'⭐ Badge'}</span></div>`;
   const lockNote = locked ? `<div class="card" style="text-align:center;background:#fff8e6"><b>🔒 Lumi suggests finishing Chapter ${id-1} first.</b> You can still peek, but the chapters build on each other.</div>` : '';
   return `<section class="view">
-  <div class="ch-head" style="background:linear-gradient(135deg,${c.color},#ffffff)">${art(c.art, c.color)}<div><div class="kicker">Chapter ${c.id} of 10</div><h1>${esc(c.title)}</h1><div class="sub">${esc(c.sub)}</div>${steps}</div></div>
+  <div class="ch-head" style="background:linear-gradient(135deg,${c.color},#ffffff)">${art(c.art, c.color)}<div><div class="kicker">Chapter ${c.id} of ${NCH}</div><h1>${esc(c.title)}</h1><div class="sub">${esc(c.sub)}</div>${steps}</div></div>
   ${lockNote}
   <div class="card reveal speech">${lumiSVG('sm')}<div class="bubble">${c.lumi}</div></div>
   <div class="card reveal roletip">💼 <b>Why this matters for your job hunt:</b> ${c.roleTip}</div>
@@ -1002,7 +1520,7 @@ function viewChapter(id){
     <div class="row"><button class="btn mint small" id="chRun">▶ Run</button><button class="btn small" id="chCheck">✓ Check answer</button><button class="btn ghost small" id="chHint">💡 Hint</button><button class="btn ghost small" id="chSol" style="display:${(S.tries[id]||0) >= 2 ? 'inline-block':'none'}">👀 Show solution</button></div>
     <div id="chMsg" style="margin-top:10px;font-weight:800"></div><div id="chOut"></div></div>
   <div class="card complete-bar reveal" id="completeBar"></div>
-  <div class="row" style="justify-content:space-between">${id>1?`<a class="btn ghost small" href="#ch-${id-1}" style="text-decoration:none">← Chapter ${id-1}</a>`:'<span></span>'}${id<10?`<a class="btn ghost small" href="#ch-${id+1}" style="text-decoration:none">Chapter ${id+1} →</a>`:''}</div>
+  <div class="row" style="justify-content:space-between">${id>1?`<a class="btn ghost small" href="#ch-${id-1}" style="text-decoration:none">← Chapter ${id-1}</a>`:'<span></span>'}${id<NCH?`<a class="btn ghost small" href="#ch-${id+1}" style="text-decoration:none">Chapter ${id+1} →</a>`:''}</div>
   </section>`;
 }
 function wireChapter(id){
@@ -1026,7 +1544,9 @@ function wireChapter(id){
   $('#chHint').onclick = () => { $('#chMsg').innerHTML = `💡 <span style="font-weight:700">${esc(c.challenge.hint)}</span>`; };
   $('#chSol').onclick = () => { ed.value = c.challenge.solution.replace(/ (FROM|WHERE|JOIN|GROUP BY|ORDER BY|HAVING)/g, '\n$1'); $('#chMsg').innerHTML = '👀 Here is one solution. Run it and see why it works!'; };
   $('#chCheck').onclick = async () => {
-    await dbReady; renderResult($('#chOut'), ed.value);
+    await dbReady; const CV = (CHAPTERS.find(x => x.id === id) || {challenge:{}}).challenge;
+    if(CV.verify){ const d = freshDb(); try{ d.exec(ed.value); const vr = runOn(d, CV.verify); $('#chOut').innerHTML = `<div class="result"><div class="meta">🔍 After running your SQL on fresh data, we checked: <code>${esc(CV.verify)}</code></div>${vr ? table(vr) : ''}</div>`; }catch(e){ $('#chOut').innerHTML = `<div class="result err">🙈 ${esc(e.message)}<br><span style="font-weight:600">Lumi's hint: ${friendly(e.message)}</span></div>`; } finally{ d.close(); } }
+    else renderResult($('#chOut'), ed.value);
     const r = checkAnswer(ed.value, c);
     if(r.ok){ $('#chMsg').innerHTML = '<span style="color:#2a9d74">🎉 Correct! Lumi is doing a happy wiggle.</span>'; if(!S.solved[id]){ S.solved[id] = true; addGems(50); confetti(40); } save(); refreshComplete(c); }
     else { S.tries[id] = (S.tries[id]||0) + 1; save(); $('#chMsg').innerHTML = `<span style="color:#c0566e">🤔 ${r.msg}</span>`; if(S.tries[id] >= 2) $('#chSol').style.display = 'inline-block'; }
@@ -1036,7 +1556,7 @@ function wireChapter(id){
 function refreshComplete(c){
   const bar = $('#completeBar'); if(!bar) return;
   const qd = S.quiz[c.id] || {}; const qOk = c.quiz.every((_, i) => qd[i] === 'ok'); const sOk = !!S.solved[c.id];
-  if(S.done[c.id]){ bar.innerHTML = `<div style="width:90px;margin:auto">${badge(c)}</div><h2 style="margin:6px 0">Chapter complete!</h2><a class="btn" href="#${c.id<10?'ch-'+(c.id+1):'game-5'}" style="text-decoration:none">${c.id<10?'Next chapter →':'Play the final game →'}</a>`; return; }
+  if(S.done[c.id]){ bar.innerHTML = `<div style="width:90px;margin:auto">${badge(c)}</div><h2 style="margin:6px 0">Chapter complete!</h2><a class="btn" href="#${c.id<NCH?'ch-'+(c.id+1):'game-'+LASTG.id}" style="text-decoration:none">${c.id<NCH?'Next chapter →':'Play the final game →'}</a>`; return; }
   bar.innerHTML = `<h2 style="margin:0 0 6px">${qOk && sOk ? 'Ready to claim your badge!' : 'Finish the quiz and challenge to earn your badge'}</h2><p style="color:var(--muted)">${qOk?'✅':'⬜'} Quiz &nbsp; ${sOk?'✅':'⬜'} Challenge</p><button class="btn" id="claim" ${qOk && sOk ? '' : 'disabled'}>⭐ Complete chapter (+100 💎)</button>`;
   const b = $('#claim'); if(b) b.onclick = () => completeChapter(c);
 }
@@ -1058,8 +1578,8 @@ function viewGame(id){
 }
 function winGame(g, scoreText){
   const first = !S.games[g.id]; S.games[g.id] = { done:true, score:scoreText }; if(first) addGems(150); save(); confetti(120);
-  if(g.id === 5) return showCert(scoreText);
-  modal(`<div style="font-size:70px;animation:pop .6s">🏆</div><h2>You won ${esc(g.title)}!</h2><p>${esc(scoreText)}${first?'<br><b>+150 💎</b>':''}</p><a class="btn" href="#ch-${Math.min(g.after+1,10)}" data-close style="text-decoration:none">Back to learning →</a><div style="margin-top:10px"><button class="btn ghost small" data-close id="again">Play again</button></div>`,
+  if(g.id === LASTG.id) return showCert(scoreText);
+  modal(`<div style="font-size:70px;animation:pop .6s">🏆</div><h2>You won ${esc(g.title)}!</h2><p>${esc(scoreText)}${first?'<br><b>+150 💎</b>':''}</p><a class="btn" href="#ch-${Math.min(g.after+1,NCH)}" data-close style="text-decoration:none">Back to learning →</a><div style="margin-top:10px"><button class="btn ghost small" data-close id="again">Play again</button></div>`,
     bg => { $('#again', bg).onclick = () => route(); });
 }
 function shuffle(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; } return a; }
@@ -1134,7 +1654,7 @@ function gameBlitz(g, el){
 }
 function showCert(scoreText){
   const name = S.name || 'SQL Adventurer'; const date = new Date().toLocaleDateString(undefined, {year:'numeric', month:'long', day:'numeric'});
-  $('main').innerHTML = `<section class="view"><div class="cert card">${lumiSVG('sm')}<div class="kicker" style="font-weight:800;color:#8a6fd1;letter-spacing:2px">CERTIFICATE OF COMPLETION</div><h1>${esc(name)}</h1><p style="font-size:18px">completed all 10 chapters of <b>SQL Quest</b>, from SELECT to window functions, and earned the rank of <b>SQL Sage</b>.</p><p>💎 ${S.gems} gems · 🏅 10 badges · ${esc(scoreText)}</p><p style="color:var(--muted)">${date}</p><div style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap">${CHAPTERS.map(c => `<div style="width:56px">${badge(c).replace('class="badge"','style="width:56px;height:56px"')}</div>`).join('')}</div></div>
+  $('main').innerHTML = `<section class="view"><div class="cert card">${lumiSVG('sm')}<div class="kicker" style="font-weight:800;color:#8a6fd1;letter-spacing:2px">CERTIFICATE OF COMPLETION</div><h1>${esc(name)}</h1><p style="font-size:18px">completed all ${NCH} chapters of <b>SQL Quest</b>, from SELECT to window functions, analytics patterns and performance, and earned the rank of <b>SQL Sage</b>.</p><p>💎 ${S.gems} gems · 🏅 ${NCH} badges · 🏋️ ${Object.keys(S.gym).length} gym problems · ${esc(scoreText)}</p><p style="color:var(--muted)">${date}</p><div style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap">${CHAPTERS.map(c => `<div style="width:56px">${badge(c).replace('class="badge"','style="width:56px;height:56px"')}</div>`).join('')}</div></div>
   <div class="card"><h2 style="margin:0">What next?</h2><ul><li>Practice daily on <a href="https://datalemur.com" target="_blank" rel="noopener">DataLemur</a> or <a href="https://leetcode.com/problemset/database/" target="_blank" rel="noopener">LeetCode SQL</a>.</li><li>Install PostgreSQL and load a public dataset you care about.</li><li>Revisit Chapter 10 and explain each report out loud, as you would in an interview.</li></ul><a class="btn" href="#home" style="text-decoration:none">Back to the map</a></div></section>`;
   confetti(160);
 }
@@ -1150,6 +1670,10 @@ function viewCheat(){
     ["Joins", "FROM a JOIN b ON b.id = a.b_id        -- matches only\nFROM a LEFT JOIN b ON b.id = a.b_id   -- all of a\n-- anti-join: LEFT JOIN ... WHERE b.id IS NULL"],
     ["CASE & NULLs", "CASE WHEN x > 10 THEN 'big' ELSE 'small' END\nCOALESCE(col, 'n/a')\nx / NULLIF(y, 0)"],
     ["CTE", "WITH step1 AS (SELECT ...),\n     step2 AS (SELECT ... FROM step1)\nSELECT * FROM step2;"],
+    ["Change data", "INSERT INTO t (a, b) VALUES (1, 'x');\nUPDATE t SET b = 'y' WHERE a = 1;   -- preview with SELECT first!\nDELETE FROM t WHERE a = 1;\nBEGIN; ... ROLLBACK;  -- or COMMIT"],
+    ["Build tables & views", "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE, score INTEGER CHECK (score >= 0));\nCREATE VIEW v AS SELECT ...;\nCREATE INDEX idx_t_name ON t(name);"],
+    ["Combine results", "SELECT ... UNION ALL SELECT ...   -- stack (UNION removes dups)\nSELECT ... INTERSECT SELECT ...   -- in both\nSELECT ... EXCEPT SELECT ...      -- in first, not second"],
+    ["Dates (SQLite)", "strftime('%Y-%m', d)   date(d, '+7 days')   date(d, 'start of month')\njulianday(b) - julianday(a)   -- days between"],
     ["Window functions", "ROW_NUMBER() OVER (PARTITION BY grp ORDER BY val DESC)\nRANK() / DENSE_RANK() OVER (ORDER BY val DESC)\nSUM(val) OVER (ORDER BY dt)            -- running total\nLAG(val) OVER (ORDER BY dt)            -- previous row"]
   ];
   return `<section class="view"><div class="ch-head" style="background:linear-gradient(135deg,#e1d4ff,#fff)">${art('nest','#e1d4ff')}<div><div class="kicker">Reference</div><h1>Cheat sheet</h1><div class="sub">Everything from the course on one page. Try any of it in the playground at the bottom.</div></div></div>
@@ -1158,16 +1682,92 @@ function viewCheat(){
   ${playground('SELECT * FROM orders LIMIT 10;')}</section>`;
 }
 
+// ---------- Practice Gym ----------
+const DIFFS = ['Easy','Medium','Hard','Case study'];
+const DCOLOR = {'Easy':'#d9f7e6','Medium':'#fff1c9','Hard':'#ffd6e0','Case study':'#e6e0ff'};
+let gymFilter = 'All';
+function viewGym(){
+  const solved = Object.keys(S.gym).length;
+  return `<section class="view"><div class="ch-head" style="background:linear-gradient(135deg,#d9f7e6,#efe1ff)">${art('trophy','#d9f7e6')}<div><div class="kicker">Practice Gym</div><h1>${PROBLEMS.length} interview-style problems</h1><div class="sub">Easy → Medium → Hard → a 5-part business case study. Each one is graded automatically against Lumi Labs' data.</div>
+    <div class="steps">${DIFFS.map(d => { const ps = PROBLEMS.filter(p => p.diff === d); return `<span class="${ps.every(p => S.gym[p.id]) ? 'ok' : ''}">${d}: ${ps.filter(p => S.gym[p.id]).length}/${ps.length}</span>`; }).join('')}<span>💎 ${DIFF_GEMS.Easy} / ${DIFF_GEMS.Medium} / ${DIFF_GEMS.Hard} gems each</span></div></div></div>
+  <div class="card reveal" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><b>Progress: ${solved}/${PROBLEMS.length}</b><div style="flex:1;min-width:160px;height:12px;background:#f0eaf9;border-radius:9px;overflow:hidden"><i style="display:block;height:100%;width:${solved/PROBLEMS.length*100}%;background:linear-gradient(90deg,var(--mint2),var(--lav2))"></i></div><a class="btn small" href="#mock" style="text-decoration:none">⏱️ Mock interview</a></div>
+  <div class="row" id="gymFilters">${['All', ...DIFFS, 'Unsolved'].map(f => `<button class="btn ${f === gymFilter ? '' : 'ghost'} small" data-f="${f}">${f}</button>`).join('')}</div>
+  ${DIFFS.map(d => { const ps = PROBLEMS.filter(p => p.diff === d && (gymFilter === 'All' || gymFilter === d || (gymFilter === 'Unsolved' && !S.gym[p.id]))); if(!ps.length) return '';
+    return `<div class="card reveal"><h2 style="margin:0 0 10px">${d === 'Easy' ? '🌱' : d === 'Medium' ? '🌿' : d === 'Hard' ? '🌳' : '💼'} ${d}${d === 'Case study' ? ': Lumi Labs quarterly business review' : ''}</h2><div class="plist">${ps.map(p => `<a class="prob ${S.gym[p.id] ? 'solved' : ''}" href="#p-${p.id}"><span class="pid" style="background:${DCOLOR[p.diff]}">${p.id}</span><span class="pt"><b>${esc(p.title)}</b><span class="tags">${p.tags.map(t => `<i>${t}</i>`).join('')}</span></span><span class="pst">${S.gym[p.id] ? '✅' : '→'}</span></a>`).join('')}</div></div>`; }).join('')}
+  </section>`;
+}
+function wireGym(){ $$('#gymFilters button').forEach(b => b.onclick = () => { gymFilter = b.dataset.f; route(); }); }
+function viewProblem(id){
+  const i = PROBLEMS.findIndex(p => p.id === id); if(i < 0) return viewGym(); const p = PROBLEMS[i], prev = PROBLEMS[i-1], next = PROBLEMS[i+1];
+  return `<section class="view"><div class="row" style="justify-content:space-between;margin:0"><a class="btn ghost small" href="#gym" style="text-decoration:none">← Gym</a><span><b>${i+1}</b> / ${PROBLEMS.length}</span></div>
+  <div class="card challenge"><div class="row" style="margin:0"><span class="pid" style="background:${DCOLOR[p.diff]}">${p.id}</span><span class="pill">${p.diff} · 💎 ${DIFF_GEMS[p.diff]}</span>${p.tags.map(t => `<span class="pill" style="font-weight:700">${t}</span>`).join('')}${S.gym[p.id] ? '<span class="pill" style="background:#e3fbef">✅ Solved</span>' : ''}</div>
+    <h2 style="margin:10px 0 6px">${esc(p.title)}</h2><p style="font-size:17px">${p.prompt}</p>
+    <div class="play"><div><textarea class="editor" id="pEditor" spellcheck="false">${esc(S.tries['p'+id] || '-- Write your query here\n')}</textarea>
+    <div class="row"><button class="btn mint small" id="pRun">▶ Run</button><button class="btn small" id="pCheck">✓ Check</button><button class="btn ghost small" id="pHint">💡 Hint</button><button class="btn ghost small" id="pSol" style="display:${(S.tries[id]||0) >= 2 || S.gym[p.id] ? 'inline-block' : 'none'}">👀 Solution</button><span class="kbd">Ctrl/⌘+Enter = check</span></div>
+    <div id="pMsg" style="margin-top:8px;font-weight:800"></div><div id="pOut"></div></div>${schemaHTML()}</div></div>
+  <div class="row" style="justify-content:space-between">${prev ? `<a class="btn ghost small" href="#p-${prev.id}" style="text-decoration:none">← ${prev.id}</a>` : '<span></span>'}${next ? `<a class="btn ghost small" href="#p-${next.id}" style="text-decoration:none">${next.id}: ${esc(next.title)} →</a>` : '<a class="btn small" href="#mock" style="text-decoration:none">⏱️ Try the mock interview →</a>'}</div></section>`;
+}
+function wireProblem(id){
+  const p = PROBLEMS.find(x => x.id === id); if(!p) return; const ed = $('#pEditor');
+  ed.addEventListener('input', () => { S.tries['p'+id] = ed.value; save(); });
+  ed.addEventListener('keydown', e => { if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ e.preventDefault(); $('#pCheck').click(); } });
+  $('#pRun').onclick = () => renderResult($('#pOut'), ed.value);
+  $('#pHint').onclick = () => { $('#pMsg').innerHTML = `💡 <span style="font-weight:700">${esc(p.hint)}</span>`; };
+  $('#pSol').onclick = () => { ed.value = p.solution.replace(/ (FROM|WHERE|JOIN|LEFT JOIN|GROUP BY|ORDER BY|HAVING|SELECT|UNION ALL)\b/g, '\n$1').replace(/\n(JOIN|LEFT JOIN)/g, '\n  $1'); $('#pMsg').innerHTML = '👀 One possible solution. Run it, then try writing it yourself from memory!'; };
+  $('#pCheck').onclick = async () => { await dbReady; renderResult($('#pOut'), ed.value); const r = checkAnswer(ed.value, p);
+    if(r.ok){ $('#pMsg').innerHTML = '<span style="color:#2a9d74">🎉 Correct! Interview-ready move.</span>'; if(!S.gym[id]){ S.gym[id] = Date.now(); addGems(DIFF_GEMS[p.diff]); confetti(50); } save(); $('#pSol').style.display = 'inline-block'; }
+    else { S.tries[id] = (S.tries[id]||0) + 1; save(); $('#pMsg').innerHTML = `<span style="color:#c0566e">🤔 ${r.msg}</span>`; if(S.tries[id] >= 2) $('#pSol').style.display = 'inline-block'; } };
+}
+// ---------- Mock interview ----------
+let MOCK = null;
+function viewMock(){
+  if(!MOCK || MOCK.ended) return `<section class="view"><div class="ch-head" style="background:linear-gradient(135deg,#fff0d6,#ffd6e0)">${art('trophy','#fff0d6')}<div><div class="kicker">Mock interview</div><h1>4 questions · 25 minutes</h1><div class="sub">1 easy, 2 medium and 1 hard, picked at random from the gym. Talk through your thinking out loud as if an interviewer is listening.</div></div></div>
+    ${MOCK && MOCK.ended ? mockResults() : ''}
+    <div class="card"><h2 style="margin:0 0 6px">How it works</h2><ul><li>A timer runs for 25 minutes. Use the <b>5-step method</b> from Chapter 16.</li><li>Check answers as often as you like. Solutions appear only at the end.</li><li>Each solved question earns 💎 30.</li></ul>${S.mock ? `<p>Your best: <b>${S.mock.score}/4</b> on ${esc(S.mock.date)}</p>` : ''}<button class="btn" id="mStart">⏱️ Start mock interview</button></div></section>`;
+  const q = PROBLEMS.find(p => p.id === MOCK.ids[MOCK.cur]);
+  return `<section class="view"><div class="card" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><b>⏱️ <span id="mT">--:--</span></b>${MOCK.ids.map((id, i) => `<button class="btn ${i === MOCK.cur ? '' : 'ghost'} small" data-q="${i}">Q${i+1} ${MOCK.solved[id] ? '✅' : ''}</button>`).join('')}<span style="flex:1"></span><button class="btn ghost small" id="mEnd">Finish interview</button></div>
+    <div class="card challenge"><div class="row" style="margin:0"><span class="pill">${q.diff}</span>${q.tags.map(t => `<span class="pill">${t}</span>`).join('')}</div><h2 style="margin:8px 0">Q${MOCK.cur+1}. ${esc(q.title)}</h2><p style="font-size:17px">${q.prompt}</p>
+    <div class="play"><div><textarea class="editor" id="mEd" spellcheck="false">${esc(MOCK.code[q.id] || '-- Clarify, plan, then write it here\n')}</textarea><div class="row"><button class="btn mint small" id="mRun">▶ Run</button><button class="btn small" id="mCheck">✓ Check</button></div><div id="mMsg" style="font-weight:800"></div><div id="mOut"></div></div>${schemaHTML()}</div></div></section>`;
+}
+function mockResults(){
+  const n = MOCK.ids.filter(id => MOCK.solved[id]).length; const mins = Math.round((Math.min(Date.now(), MOCK.endAt) - MOCK.startAt) / 60000);
+  return `<div class="card" style="text-align:center"><div style="font-size:60px">${n === 4 ? '🏆' : n >= 2 ? '🌟' : '💪'}</div><h2>You solved ${n} of 4 in ${mins} min</h2><p>${n === 4 ? 'Interview-ready! Try another round to keep it sharp.' : n >= 2 ? 'Solid! Review the solutions below, then try again tomorrow.' : 'Every attempt builds the muscle. Review the solutions and practise those topics in the gym.'}</p></div>
+  ${MOCK.ids.map((id, i) => { const p = PROBLEMS.find(x => x.id === id); return `<div class="card"><b>Q${i+1}. ${esc(p.title)} ${MOCK.solved[id] ? '✅' : '❌'}</b><p>${p.prompt}</p>${MOCK.solved[id] ? '' : `<pre class="sqlc" style="padding-right:18px">${hl(p.solution)}</pre>`}<a href="#p-${p.id}">Practise this in the gym →</a></div>`; }).join('')}`;
+}
+let mockIv = null;
+function wireMock(){
+  clearInterval(mockIv);
+  const st = $('#mStart'); if(st){ st.onclick = () => { const pick = d => PROBLEMS.filter(p => p.diff === d).sort(() => Math.random() - .5);
+      MOCK = { ids:[pick('Easy')[0].id, ...pick('Medium').slice(0,2).map(p => p.id), pick('Hard')[0].id], cur:0, solved:{}, code:{}, startAt:Date.now(), endAt:Date.now() + 25*60000, ended:false }; route(); }; return; }
+  const q = PROBLEMS.find(p => p.id === MOCK.ids[MOCK.cur]); const ed = $('#mEd');
+  const finish = () => { if(MOCK.ended) return; MOCK.ended = true; clearInterval(mockIv); const n = MOCK.ids.filter(id => MOCK.solved[id]).length;
+    if(!S.mock || n > S.mock.score) S.mock = { score:n, date:new Date().toLocaleDateString() }; save(); if(n) confetti(40 + n*20); route(); };
+  const tick = () => { const left = Math.max(0, MOCK.endAt - Date.now()); const t = $('#mT'); if(!t){ clearInterval(mockIv); return; } t.textContent = `${Math.floor(left/60000)}:${String(Math.floor(left/1000)%60).padStart(2,'0')}`; t.style.color = left < 120000 ? '#c0566e' : ''; if(left <= 0) finish(); };
+  mockIv = setInterval(tick, 1000); tick();
+  ed.addEventListener('input', () => { MOCK.code[q.id] = ed.value; });
+  ed.addEventListener('keydown', e => { if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ e.preventDefault(); $('#mCheck').click(); } });
+  $$('[data-q]').forEach(b => b.onclick = () => { MOCK.code[q.id] = ed.value; MOCK.cur = +b.dataset.q; route(); });
+  $('#mRun').onclick = () => renderResult($('#mOut'), ed.value, true);
+  $('#mCheck').onclick = async () => { await dbReady; renderResult($('#mOut'), ed.value, true); const r = checkAnswer(ed.value, q);
+    if(r.ok){ if(!MOCK.solved[q.id]){ MOCK.solved[q.id] = true; addGems(30); } $('#mMsg').innerHTML = '<span style="color:#2a9d74">✅ Correct! On to the next one.</span>'; $$('[data-q]')[MOCK.cur].textContent = `Q${MOCK.cur+1} ✅`; if(MOCK.ids.every(id => MOCK.solved[id])) setTimeout(finish, 800); }
+    else $('#mMsg').innerHTML = `<span style="color:#c0566e">🤔 ${r.msg}</span>`; };
+  $('#mEnd').onclick = finish;
+}
+
 // ---------- router ----------
 function route(){
+  clearInterval(mockIv);
   const h = (location.hash || '#home').slice(1); const main = $('main'); let html, after = null;
   let m;
   if((m = h.match(/^ch-(\d+)$/))){ const id = +m[1]; html = viewChapter(id); after = () => wireChapter(id); }
   else if((m = h.match(/^game-(\d+)$/))){ const id = +m[1]; html = viewGame(id); after = () => wireGame(id); }
   else if(h === 'cheatsheet'){ html = viewCheat(); after = () => wirePlayground(); }
+  else if(h === 'gym'){ html = viewGym(); after = wireGym; }
+  else if((m = h.match(/^p-(\w+)$/))){ const id = m[1]; html = viewProblem(id); after = () => wireProblem(id); }
+  else if(h === 'mock'){ html = viewMock(); after = wireMock; }
   else html = viewHome();
   main.innerHTML = html; window.scrollTo({top:0});
-  $$('.nav a').forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + h || (h.startsWith('ch-') && a.dataset.k === 'learn')));
+  $$('.nav a').forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + h || (h.startsWith('ch-') && a.dataset.k === 'learn') || (h.startsWith('p-') && a.getAttribute('href') === '#gym')));
   if(after) after(); reveal(main); updateTop();
 }
 window.addEventListener('hashchange', route);
@@ -1180,9 +1780,9 @@ function settings(){
     <p style="margin-top:16px">Restore from a code:</p><textarea id="rs" placeholder="Paste a backup code here"></textarea>
     <div class="row" style="justify-content:center"><button class="btn mint small" id="rsgo">Restore</button><button class="btn ghost small" id="rename">Change name</button><button class="btn ghost small" id="wipe">Reset everything</button></div><div id="sm" style="font-weight:800;margin-top:8px"></div>`, bg => {
     $('#cp', bg).onclick = async () => { try{ await navigator.clipboard.writeText($('#bk', bg).value); $('#sm', bg).textContent = 'Copied!'; }catch(e){ $('#bk', bg).select(); $('#sm', bg).textContent = 'Select the text above and copy it.'; } };
-    $('#rsgo', bg).onclick = () => { try{ S = Object.assign({name:"",gems:0,done:{},quiz:{},solved:{},games:{},tries:{}}, JSON.parse(decodeURIComponent(escape(atob($('#rs', bg).value.trim()))))); save(); bg.remove(); route(); toast('Progress restored!'); }catch(e){ $('#sm', bg).textContent = "That code didn't work."; } };
+    $('#rsgo', bg).onclick = () => { try{ S = Object.assign({name:"",gems:0,done:{},quiz:{},solved:{},games:{},tries:{},gym:{},mock:null}, JSON.parse(decodeURIComponent(escape(atob($('#rs', bg).value.trim()))))); save(); bg.remove(); route(); toast('Progress restored!'); }catch(e){ $('#sm', bg).textContent = "That code didn't work."; } };
     $('#rename', bg).onclick = () => { bg.remove(); welcome(); };
-    let armed = false; $('#wipe', bg).onclick = e => { if(!armed){ armed = true; e.target.textContent = 'Tap again to confirm'; return; } S = {name:S.name,gems:0,done:{},quiz:{},solved:{},games:{},tries:{}}; save(); bg.remove(); route(); toast('Fresh start!'); };
+    let armed = false; $('#wipe', bg).onclick = e => { if(!armed){ armed = true; e.target.textContent = 'Tap again to confirm'; return; } S = {name:S.name,gems:0,done:{},quiz:{},solved:{},games:{},tries:{},gym:{},mock:null}; save(); bg.remove(); route(); toast('Fresh start!'); };
   });
 }
 function welcome(){
