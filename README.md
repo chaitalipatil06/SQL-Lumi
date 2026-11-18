@@ -9,6 +9,9 @@ Everything runs in the browser. Learners write real SQL against a small fictiona
 ## Features
 
 - **16 chapters**: databases and keys → SELECT → WHERE → ORDER BY/LIMIT → GROUP BY/HAVING → JOINs → CASE and functions → subqueries and CTEs → window functions → business reports → INSERT/UPDATE/DELETE and transactions → CREATE TABLE, constraints, views and normalization → UNION/INTERSECT/EXCEPT, NULL traps and duplicates → dates and text → analytics patterns (funnels, cohort retention, gaps-and-islands, medians) → indexes, query plans, warehouse concepts and an interview method
+- **A story for every chapter**: each topic opens at the fictional Lumi Health clinic. A colleague brings a real question, and the story explains *why* the concept exists, *when* you'd use it (with a healthcare analogy) and *how* it looks in SQL
+- **176 practice challenges** (10–12 per chapter, easy → hard), each set in the clinic story and auto-graded
+- **Skills Check at the end of every chapter**: 5 scored tasks (write queries plus concept questions). The skill report shows a score, a level (Getting started → Mastered), per-skill bars, strengths, and "work on next" links to the matching practice challenges. A skill profile on the home page tracks every chapter
 - **Practice Gym**: 47 auto-graded problems (14 easy, 16 medium, 12 hard, and a 5-part business case study)
 - **Mock interview**: 4 random problems against a 25-minute timer, with a results review
 - **Try-it buttons** on every example, plus a playground with a live schema browser
@@ -16,7 +19,7 @@ Everything runs in the browser. Learners write real SQL against a small fictiona
 - **Quizzes and auto-graded challenges** in every chapter, with hints and friendly error messages
 - **Progress tracker**: a quest map, gems, ranks (Data Sprout → SQL Sage), a badge shelf and a progress bar, saved in the browser with a backup/restore code
 - **A reward game every 2 chapters** (8 games), with a certificate at the end
-- Practice data: a company database (departments, employees, customers, products, orders) plus product-analytics tables (`users`, `events`)
+- Practice data: a healthcare clinic database (`patients`, `doctors`, `appointments`, `prescriptions`, `lab_results`), a company database (departments, employees, customers, products, orders) plus product-analytics tables (`users`, `events`)
 - **Lumi**, an original axolotl mascot, animated in hand-written SVG
 - A role guide showing which chapters matter most for each target job
 
@@ -30,6 +33,8 @@ src/
   content.js      chapters 1-10, quizzes, challenges, games
   content2.js     chapters 11-16 and the extra games
   gym.js          the 47 Practice Gym problems
+  practice.js     chapter stories, 176 practice challenges and 16 skills checks
+  clinic.sql      the Lumi Health clinic practice data
   app.js          app logic: router, playground, grading, games, progress
   gen_seed.py     generates the practice database
   seed.sql        generated practice data

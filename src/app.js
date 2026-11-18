@@ -210,11 +210,14 @@ function norm(r, ordered){
   return { cols: r.columns.length, rows };
 }
 function checkAnswer(userSql, ch){
-  const C = ch.challenge || ch; const d1 = freshDb(), d2 = freshDb();
+  const C = ch.challenge || ch;
+  if(!stripComments(userSql).replace(/[;\s]/g, '')) return { ok:false, msg:'Write a query first. Your editor only has comments.' };
+  const d1 = freshDb(), d2 = freshDb();
   try{
     let u, s;
     if(C.verify){ d1.exec(userSql); d2.exec(C.solution); u = norm(runOn(d1, C.verify), C.ordered); s = norm(runOn(d2, C.verify), C.ordered); }
     else { u = norm(runOn(d1, userSql), C.ordered); s = norm(runOn(d2, C.solution), C.ordered); }
+    if(!u && (!s || !s.rows.length)) return { ok:true };
     if(!u) return { ok:false, msg:"Your query didn't return any rows yet." };
     if(u.cols !== s.cols) return { ok:false, msg:`Expected ${s.cols} column${s.cols>1?'s':''}, you returned ${u.cols}. Check which columns you SELECT.` };
     if(u.rows.length !== s.rows.length) return { ok:false, msg:`Expected ${s.rows.length} rows, you returned ${u.rows.length}. Check your filters or grouping.` };
@@ -259,10 +262,13 @@ function reveal(root){
   setTimeout(() => $$('.reveal', root).forEach(el => el.classList.add('in')), 2500);
 }
 function schemaHTML(){
-  const T = { departments:['dept_id (PK)','dept_name','location'], employees:['emp_id (PK)','name','dept_id (FK)','manager_id (FK → employees)','hire_date','salary'],
-    customers:['customer_id (PK)','name','region','signup_date'], products:['product_id (PK)','product_name','category','price'],
-    orders:['order_id (PK)','customer_id (FK)','emp_id (FK, sales rep)','product_id (FK)','order_date','quantity','amount','status'] };
-  return `<div class="schema"><b>🗂️ Lumi Labs schema</b>${Object.entries(T).map(([t,c]) => `<details open><summary>${t}</summary><ul>${c.map(x => `<li>${x}</li>`).join('')}</ul></details>`).join('')}</div>`;
+  const GROUPS = [
+    ['🏥 Lumi Health clinic', { patients:['patient_id (PK)','first_name','last_name','gender','birth_date','city','insurance'], doctors:['doctor_id (PK)','name','specialty','hire_date','visit_fee'],
+      appointments:['appt_id (PK)','patient_id (FK)','doctor_id (FK)','appt_date','status','reason','fee'], prescriptions:['rx_id (PK)','appt_id (FK)','drug','days_supply','cost'], lab_results:['result_id (PK)','patient_id (FK)','test','value','result_date'] }],
+    ['🏢 Lumi Labs company', { departments:['dept_id (PK)','dept_name','location'], employees:['emp_id (PK)','name','dept_id (FK)','manager_id (FK → employees)','hire_date','salary'],
+      customers:['customer_id (PK)','name','region','signup_date'], products:['product_id (PK)','product_name','category','price'], orders:['order_id (PK)','customer_id (FK)','emp_id (FK, sales rep)','product_id (FK)','order_date','quantity','amount','status'] }],
+    ['📱 App analytics', { users:['user_id (PK)','signup_date','channel','country'], events:['event_id (PK)','user_id (FK)','event_name','event_date','platform'] }] ];
+  return `<div class="schema"><b>🗂️ Tables you can query</b>${GROUPS.map(([g, T]) => `<div class="sgrp">${g}</div>${Object.entries(T).map(([t,c]) => `<details><summary>${t}</summary><ul>${c.map(x => `<li>${x}</li>`).join('')}</ul></details>`).join('')}`).join('')}</div>`;
 }
 function playground(starter){
   return `<div class="card reveal"><h2 style="margin:0 0 4px">🧪 Playground</h2><p style="margin:0 0 10px;color:var(--muted)">Experiment freely. Nothing you do here can break the lesson data permanently.</p>
@@ -306,11 +312,103 @@ function viewHome(){
     <div class="stat"><div class="n" style="font-size:24px">${level()}</div><div class="l">Your rank</div></div></div>
   <div class="card reveal"><h2 style="margin:0">🗺️ Your quest map</h2><p style="color:var(--muted);margin:4px 0 0">Finish chapters in order. Every 2 chapters, a treasure chest opens with a reward game.</p>
     <div class="map" style="height:${mapH}px"><svg class="path" viewBox="0 0 1000 ${mapH}" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="#e3d8fb" stroke-width="16" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#fff" stroke-width="4" stroke-dasharray="2 14" stroke-linecap="round"/></svg>${nodes}</div></div>
+  ${skillProfileHTML()}
   <div class="card reveal"><h2 style="margin:0 0 4px">🎯 Built for the roles you're targeting</h2><p style="color:var(--muted);margin:0 0 14px">Each role leans on different chapters. Outlined chips are chapters you've finished.</p>
     <div class="roles">${ROLES.map(r => `<div class="role" style="background:${r.color}"><h3>${r.name}</h3><p>${r.why}</p><div class="chips">${r.chapters.map(n => `<span class="${S.done[n]?'ok':''}">Ch ${n}</span>`).join('')}</div></div>`).join('')}</div></div>
   <div class="card reveal"><h2 style="margin:0 0 8px">🏅 Badge shelf</h2><div style="display:flex;flex-wrap:wrap;gap:10px">${CHAPTERS.map(c => `<div title="${esc(c.title)}" style="width:76px;opacity:${S.done[c.id]?1:.18};filter:${S.done[c.id]?'none':'grayscale(1)'}">${badge(c).replace('class="badge"','style="width:76px;height:76px"')}</div>`).join('')}</div></div>
   </section>`;
 }
+// ---------- Story, practice & skills check ----------
+function storyHTML(id){
+  const st = STORY[id]; if(!st) return '';
+  return `<div class="card story reveal"><div class="story-tag">📖 THE STORY · LUMI HEALTH CLINIC</div><div class="story-ask"><b>${st.cast}</b><p>${st.ask}</p></div>
+    <div class="story-grid"><div class="sbox"><h3>🧠 Think of it like this</h3><p>${st.analogy}</p></div><div class="sbox"><h3>🎯 Why it matters</h3><p>${st.why}</p></div>
+    <div class="sbox"><h3>⏰ When you'll reach for it</h3><ul>${st.when.map(w => `<li>${w}</li>`).join('')}</ul></div><div class="sbox"><h3>🛠️ How it looks</h3><p>${st.how}</p></div></div></div>`;
+}
+const PKEY = (id, i) => id + '-' + i;
+function practiceHTML(id){
+  const list = PRACTICE[id] || []; if(!list.length) return ''; S.prac = S.prac || {};
+  const done = list.filter((_, i) => S.prac[PKEY(id, i)]).length;
+  return `<div class="card reveal" id="practice"><div class="row" style="justify-content:space-between;margin:0"><h2 style="margin:0">🏋️ Practice challenges</h2><span class="pill">${done}/${list.length} solved</span></div>
+    <p style="color:var(--muted);margin:4px 0 12px">Short real-life tasks from the clinic, from easy (⭐) to harder (⭐⭐⭐). Click one to open it.</p>
+    <div class="pc-list">${list.map((c, i) => `<div class="pc ${S.prac[PKEY(id, i)] ? 'solved' : ''}" data-i="${i}"><button class="pc-head"><span class="pc-n">${i+1}</span><span class="pc-t"><b>${esc(c.t)}</b><span class="tags"><i>${esc(SKILLS[c.k] || c.k)}</i></span></span><span class="pc-lv">${'⭐'.repeat(c.lv || 1)}</span><span class="pc-st">${S.prac[PKEY(id, i)] ? '✅' : '▸'}</span></button><div class="pc-body"></div></div>`).join('')}</div></div>`;
+}
+function openPractice(id, i){
+  const c = PRACTICE[id][i]; $$('.pc').forEach(p => { if(+p.dataset.i !== i){ p.classList.remove('open'); $('.pc-body', p).innerHTML = ''; } });
+  const card = $(`.pc[data-i="${i}"]`); if(card.classList.contains('open')){ card.classList.remove('open'); $('.pc-body', card).innerHTML = ''; return; }
+  card.classList.add('open'); const key = PKEY(id, i); S.tries = S.tries || {};
+  $('.pc-body', card).innerHTML = `<div class="pc-story">💬 ${c.s}</div><p class="pc-p">${c.p}</p><textarea class="editor pc-ed" spellcheck="false">${esc(S.tries['pr' + key] || '-- Write your query here\n')}</textarea>
+    <div class="row"><button class="btn mint small" data-a="run">▶ Run</button><button class="btn small" data-a="check">✓ Check</button><button class="btn ghost small" data-a="hint">💡 Hint</button><button class="btn ghost small" data-a="sol" style="display:${(S.tries['pt' + key] || 0) >= 2 || S.prac[key] ? 'inline-block' : 'none'}">👀 Solution</button></div><div class="pc-msg"></div><div class="pc-out"></div>`;
+  const ed = $('.pc-ed', card), msg = $('.pc-msg', card), out = $('.pc-out', card); ed.focus();
+  ed.addEventListener('input', () => { S.tries['pr' + key] = ed.value; save(); });
+  ed.addEventListener('keydown', e => { if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ e.preventDefault(); $('[data-a="check"]', card).click(); } });
+  $('[data-a="run"]', card).onclick = () => renderResult(out, ed.value);
+  $('[data-a="hint"]', card).onclick = () => { msg.innerHTML = `💡 <span style="font-weight:700">${esc(c.h)}</span>`; };
+  $('[data-a="sol"]', card).onclick = () => { ed.value = c.sol; msg.innerHTML = '👀 One way to solve it. Run it, then try again from memory tomorrow!'; };
+  $('[data-a="check"]', card).onclick = async () => { await dbReady; if(c.v){ const d = freshDb(); try{ d.exec(ed.value); const vr = runOn(d, c.v); out.innerHTML = `<div class="result"><div class="meta">🔍 Checked with: <code>${esc(c.v)}</code></div>${vr ? table(vr) : ''}</div>`; }catch(e){ out.innerHTML = `<div class="result err">🙈 ${esc(e.message)}</div>`; } finally{ d.close(); } } else renderResult(out, ed.value);
+    const r = checkAnswer(ed.value, {solution:c.sol, ordered:!!c.o, verify:c.v});
+    if(r.ok){ msg.innerHTML = '<span style="color:#2a9d74">🎉 Correct! You\'d nail this at work.</span>'; if(!S.prac[key]){ S.prac[key] = Date.now(); addGems(10 * (c.lv || 1)); confetti(30); card.classList.add('solved'); $('.pc-st', card).textContent = '✅'; } save(); $('[data-a="sol"]', card).style.display = 'inline-block'; }
+    else { S.tries['pt' + key] = (S.tries['pt' + key] || 0) + 1; save(); msg.innerHTML = `<span style="color:#c0566e">🤔 ${r.msg}</span>`; if(S.tries['pt' + key] >= 2) $('[data-a="sol"]', card).style.display = 'inline-block'; } };
+}
+// ----- skills check -----
+let CK = null; // {id, items:[{status, score, tries}] }
+function checkIntroHTML(id){
+  const items = CHECK[id] || []; if(!items.length) return ''; S.skill = S.skill || {}; const prev = S.skill[id];
+  return `<div class="card reveal skillcheck" id="skillcheck"><h2 style="margin:0">🎓 Chapter ${id} Skills Check</h2><p style="margin:6px 0">${items.length} questions: ${items.filter(x => x.type === 'sql').length} queries to write and ${items.filter(x => x.type === 'mcq').length} judgement questions. At the end you get a <b>skill report</b>: what you're strong at and exactly what to practise next.</p>
+    ${prev ? `<p>Last result: <b>${prev.pct}%</b> · ${levelName(prev.pct)} · ${esc(prev.date)}</p>` : ''}<button class="btn" id="ckStart">${prev ? '↻ Retake' : '▶ Start'} skills check</button><div id="ckArea"></div></div>`;
+}
+const levelName = p => p >= 90 ? '🏆 Mastered' : p >= 70 ? '🌟 Confident' : p >= 50 ? '🌿 Developing' : '🌱 Getting started';
+function startCheck(id){
+  const items = CHECK[id]; CK = { id, items: items.map(() => ({status:'open', score:0, tries:0})) };
+  const area = $('#ckArea'); $('#ckStart').style.display = 'none';
+  area.innerHTML = items.map((it, i) => `<div class="ck-item" data-i="${i}"><div class="ck-h"><span class="pc-n">${i+1}</span><span class="tags"><i>${esc(SKILLS[it.k] || it.k)}</i></span><span class="ck-st"></span></div>
+    ${it.type === 'sql' ? `<p>${it.p}</p><textarea class="editor ck-ed" spellcheck="false">-- your query\n</textarea><div class="row"><button class="btn mint small" data-a="run">▶ Run</button><button class="btn small" data-a="submit">✓ Submit answer</button><button class="btn ghost small" data-a="skip">I don't know yet</button></div><div class="ck-msg"></div><div class="ck-out"></div>`
+      : `<p><b>${esc(it.q)}</b></p><div class="opts">${it.opts.map((o, j) => `<button class="opt" data-j="${j}">${esc(o)}</button>`).join('')}</div><div class="ck-msg"></div>`}</div>`).join('') + `<div class="row" style="justify-content:center"><button class="btn" id="ckFinish" disabled>📊 See my skill report</button></div>`;
+  const upd = () => { const left = CK.items.filter(x => x.status === 'open').length; $('#ckFinish').disabled = left > 0; $('#ckFinish').textContent = left ? `📊 See my skill report (${left} left)` : '📊 See my skill report'; };
+  $$('.ck-item', area).forEach(el => { const i = +el.dataset.i, it = items[i], st = CK.items[i]; const msg = $('.ck-msg', el);
+    const close = (score, text, ok) => { st.status = 'done'; st.score = score; el.classList.add(ok ? 'ok' : 'no'); $('.ck-st', el).textContent = ok ? (score === 1 ? '✅ +1' : '✅ +½') : '❌ 0'; msg.innerHTML = text; $$('button', el).forEach(b => b.disabled = true); $$('textarea', el).forEach(t => t.readOnly = true); upd(); };
+    if(it.type === 'mcq'){ $$('.opt', el).forEach(b => b.onclick = () => { const ok = +b.dataset.j === it.a; b.classList.add(ok ? 'right' : 'wrong'); if(!ok) $(`.opt[data-j="${it.a}"]`, el).classList.add('right'); close(ok ? 1 : 0, ok ? '✅ Correct' : '❌ The highlighted answer is right.', ok); }); return; }
+    const ed = $('.ck-ed', el); ed.addEventListener('keydown', e => { if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ e.preventDefault(); $('[data-a="submit"]', el).click(); } });
+    $('[data-a="run"]', el).onclick = () => renderResult($('.ck-out', el), ed.value, !!it.v);
+    $('[data-a="skip"]', el).onclick = () => close(0, `Here's one answer to study:<pre class="sqlc" style="padding-right:18px">${hl(it.sol)}</pre>`, false);
+    $('[data-a="submit"]', el).onclick = async () => { await dbReady; const r = checkAnswer(ed.value, {solution:it.sol, ordered:!!it.o, verify:it.v}); st.tries++;
+      if(r.ok) close(st.tries === 1 ? 1 : 0.5, st.tries === 1 ? '✅ Correct on the first try!' : '✅ Correct on the second try (½ point).', true);
+      else if(st.tries >= 2) close(0, `❌ Not quite. Here's one answer to study:<pre class="sqlc" style="padding-right:18px">${hl(it.sol)}</pre>`, false);
+      else msg.innerHTML = `<span style="color:#c0566e">🤔 ${r.msg} One more try!</span>`; };
+  });
+  $('#ckFinish').onclick = () => finishCheck();
+  upd();
+}
+function finishCheck(){
+  const { id, items } = CK; const defs = CHECK[id]; const total = items.reduce((s, x) => s + x.score, 0); const pct = Math.round(100 * total / items.length);
+  const by = {}; defs.forEach((d, i) => { by[d.k] = by[d.k] || {got:0, of:0}; by[d.k].got += items[i].score; by[d.k].of += 1; });
+  const strong = Object.keys(by).filter(k => by[k].got / by[k].of >= 0.75), weak = Object.keys(by).filter(k => by[k].got / by[k].of < 0.75);
+  S.skill = S.skill || {}; const first = !S.skill[id]; S.skill[id] = { pct, by, date:new Date().toLocaleDateString() }; if(first) addGems(50); save(); if(pct >= 70) confetti(60);
+  const practiceFor = k => (PRACTICE[id] || []).map((c, i) => ({c, i})).filter(x => x.c.k === k);
+  $('#ckArea').innerHTML = `<div class="report"><div class="rep-top"><div class="rep-score"><b>${pct}%</b><span>${levelName(pct)}</span></div><div><h3 style="margin:0 0 6px">Your Chapter ${id} skill report</h3><p style="margin:0">${pct >= 90 ? 'Outstanding: you can use this chapter confidently at work.' : pct >= 70 ? 'Solid! A little practice on the items below will make it automatic.' : pct >= 50 ? 'You\'ve got the basics. Practise the skills below, then retake the check.' : 'That\'s okay. This is new! Re-read the story and examples, do the practice set, then retake.'}</p></div></div>
+    <div class="rep-bars">${Object.entries(by).map(([k, v]) => `<div class="rb"><span>${esc(SKILLS[k] || k)}</span><div class="bar"><i style="width:${v.got / v.of * 100}%;background:${v.got / v.of >= .75 ? '#5fd3a8' : v.got / v.of >= .5 ? '#ffd966' : '#ff9e8f'}"></i></div><b>${v.got}/${v.of}</b></div>`).join('')}</div>
+    <div class="rep-cols"><div><h4>💪 Strengths</h4>${strong.length ? `<ul>${strong.map(k => `<li>${esc(SKILLS[k] || k)}</li>`).join('')}</ul>` : '<p class="muted">Keep going: strengths will show up here.</p>'}</div>
+    <div><h4>🎯 Work on next</h4>${weak.length ? `<ul>${weak.map(k => { const ps = practiceFor(k); return `<li><b>${esc(SKILLS[k] || k)}</b>${ps.length ? `: practise ${ps.slice(0, 4).map(x => `<a href="#" data-open="${x.i}">#${x.i + 1} ${esc(x.c.t)}</a>`).join(', ')}` : ': revisit the examples in this chapter'}</li>`; }).join('')}</ul>` : '<p>Nothing! You\'re ready for the next chapter. 🚀</p>'}</div></div>
+    <div class="row" style="justify-content:center"><button class="btn ghost small" id="ckAgain">↻ Retake</button>${id < NCH ? `<a class="btn small" href="#ch-${id+1}" style="text-decoration:none">Next chapter →</a>` : ''}</div></div>`;
+  $$('[data-open]').forEach(a => a.onclick = e => { e.preventDefault(); const i = +a.dataset.open; $('#practice').scrollIntoView({behavior:'smooth'}); setTimeout(() => openPractice(id, i), 400); });
+  $('#ckAgain').onclick = () => startCheck(id);
+  $('#skillcheck').scrollIntoView({behavior:'smooth', block:'start'});
+}
+function wireExtras(id){
+  $$('.pc-head').forEach(b => b.onclick = () => openPractice(id, +b.closest('.pc').dataset.i));
+  const s = $('#ckStart'); if(s) s.onclick = () => startCheck(id);
+}
+function skillProfileHTML(){
+  S.skill = S.skill || {}; const done = Object.keys(S.skill); S.prac = S.prac || {};
+  const totalPrac = Object.values(PRACTICE).reduce((s, l) => s + l.length, 0), solvedPrac = Object.keys(S.prac).length;
+  const agg = {}; done.forEach(ch => Object.entries(S.skill[ch].by).forEach(([k, v]) => { agg[k] = agg[k] || {got:0, of:0, ch:+ch}; agg[k].got += v.got; agg[k].of += v.of; }));
+  const weakest = Object.entries(agg).filter(([, v]) => v.got / v.of < 0.75).sort((a, b) => a[1].got / a[1].of - b[1].got / b[1].of).slice(0, 4);
+  return `<div class="card reveal"><h2 style="margin:0 0 4px">📊 Your skill profile</h2><p style="color:var(--muted);margin:0 0 12px">From your chapter Skills Checks · 🏋️ ${solvedPrac}/${totalPrac} practice challenges solved</p>
+    ${done.length ? `<div class="prof">${CHAPTERS.map(c => { const r = S.skill[c.id]; return `<a class="profc" href="#ch-${c.id}" title="${esc(c.title)}"><span>Ch ${c.id}</span><div class="bar"><i style="width:${r ? r.pct : 0}%;background:${!r ? '#eee' : r.pct >= 70 ? '#5fd3a8' : r.pct >= 50 ? '#ffd966' : '#ff9e8f'}"></i></div><b>${r ? r.pct + '%' : '—'}</b></a>`; }).join('')}</div>
+      ${weakest.length ? `<h4 style="margin:14px 0 6px">🎯 Focus areas</h4><div class="row">${weakest.map(([k, v]) => `<a class="pill" href="#ch-${v.ch}" style="text-decoration:none">${esc(SKILLS[k] || k)} · ${Math.round(100 * v.got / v.of)}%</a>`).join('')}</div>` : '<p>🎉 No weak spots in the checks you\'ve taken so far!</p>'}`
+      : '<p>Finish a chapter and take its <b>Skills Check</b>: your strengths and focus areas will appear here.</p>'}</div>`;
+}
+
 function viewChapter(id){
   const c = CHAPTERS.find(x => x.id === id); if(!c) return viewHome();
   const locked = !chUnlocked(id);
@@ -320,6 +418,7 @@ function viewChapter(id){
   return `<section class="view">
   <div class="ch-head" style="background:linear-gradient(135deg,${c.color},#ffffff)">${art(c.art, c.color)}<div><div class="kicker">Chapter ${c.id} of ${NCH}</div><h1>${esc(c.title)}</h1><div class="sub">${esc(c.sub)}</div>${steps}</div></div>
   ${lockNote}
+  ${storyHTML(id)}
   <div class="card reveal speech">${lumiSVG('sm')}<div class="bubble">${c.lumi}</div></div>
   <div class="card reveal roletip">💼 <b>Why this matters for your job hunt:</b> ${c.roleTip}</div>
   ${c.sections.map((s, i) => `<div class="card section reveal"><h2><span class="num" style="background:${c.color}">${i+1}</span>${esc(s.h)}</h2>${s.html}</div>`).join('')}
@@ -330,13 +429,15 @@ function viewChapter(id){
     <textarea class="editor" id="chEditor" spellcheck="false">${esc(S.tries['code'+id] || c.challenge.starter)}</textarea>
     <div class="row"><button class="btn mint small" id="chRun">▶ Run</button><button class="btn small" id="chCheck">✓ Check answer</button><button class="btn ghost small" id="chHint">💡 Hint</button><button class="btn ghost small" id="chSol" style="display:${(S.tries[id]||0) >= 2 ? 'inline-block':'none'}">👀 Show solution</button></div>
     <div id="chMsg" style="margin-top:10px;font-weight:800"></div><div id="chOut"></div></div>
+  ${practiceHTML(id)}
+  ${checkIntroHTML(id)}
   <div class="card complete-bar reveal" id="completeBar"></div>
   <div class="row" style="justify-content:space-between">${id>1?`<a class="btn ghost small" href="#ch-${id-1}" style="text-decoration:none">← Chapter ${id-1}</a>`:'<span></span>'}${id<NCH?`<a class="btn ghost small" href="#ch-${id+1}" style="text-decoration:none">Chapter ${id+1} →</a>`:''}</div>
   </section>`;
 }
 function wireChapter(id){
   const c = CHAPTERS.find(x => x.id === id); if(!c) return;
-  codeBlocks($('main')); wirePlayground();
+  codeBlocks($('main')); wirePlayground(); wireExtras(id);
   // quiz
   $$('#quiz .q').forEach(qEl => {
     const i = +qEl.dataset.i, q = c.quiz[i];
